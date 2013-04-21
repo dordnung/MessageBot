@@ -57,9 +57,10 @@ native MessageBot_SetLoginData(const String:steamUsername[], const String:steamP
  *
  * @param callback            Callback to be called when result is available.
  * @param message             Message to be sent.
+ * @param showOnline 		  Show that bot is online?
  * @noreturn
  */
-native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[]);
+native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[], bool:showOnlien=true);
 
 
 

@@ -59,6 +59,8 @@ IClientFriends *steamFriends;
 IClientEngine *steamClient;
 IClientUser *steamUser;
 
+GetCallbackFn GetCallback = 0;
+FreeLastCallbackFn FreeLastCallback = 0;
 
 
 // Queue start
@@ -92,27 +94,32 @@ sp_nativeinfo_t messagebot_natives[] =
 // Extension loaded
 bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 {
-	// Add natives and register library 
-	sharesys->AddNatives(myself, messagebot_natives);
-	sharesys->RegisterLibrary(myself, "messagebot");
-
-
-	// GameFrame
-	smutils->AddGameFrameHook(&OnGameFrameHit);
-	g_pPawnMutex = threader->MakeMutex();
-
-
 	// Empty username and password
 	username = "";
 	password = "";
 
 
+	// Load DLL or SO
+	#if defined _WIN32
+		DynamicLibrary lib("steamclient.dll");
+	#elif defined _LINUX
+		DynamicLibrary lib("steamclient.so");
+	#endif
 
-	// Factory laod
-	CSteamAPILoader loader;
-	CreateInterfaceFn factory = loader.GetSteam3Factory();
 
 
+	// is Loaded?
+	if (!lib.IsLoaded())
+	{
+		g_pSM->LogError(myself, "Unable to load steam engine.");
+
+		return false;
+	}
+
+
+
+	// Factory
+	CreateInterfaceFn factory = reinterpret_cast<CreateInterfaceFn>(lib.GetSymbol("CreateInterface"));
 
 	// Get Factory
 	if (!factory)
@@ -124,8 +131,33 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 
 
+
+	// Callback
+	GetCallback = reinterpret_cast<GetCallbackFn>(lib.GetSymbol("Steam_BGetCallback"));
+
+	if (GetCallback == 0)
+	{
+		g_pSM->LogError(myself, "Unable to load Steam callback.");
+
+		return false;
+	}
+
+
+
+	FreeLastCallback = reinterpret_cast<FreeLastCallbackFn>(lib.GetSymbol("Steam_FreeLastCallback"));
+
+	if (FreeLastCallback == 0)
+	{
+		g_pSM->LogError(myself, "Unable to load Steam free callback.");
+
+		return false;
+	}
+
+
+
+
 	// Get Steam Engine
-	steamClient = (IClientEngine *)factory(CLIENTENGINE_INTERFACE_VERSION, NULL);
+	steamClient = reinterpret_cast<IClientEngine*>(factory(CLIENTENGINE_INTERFACE_VERSION, NULL));
 
 	if (!steamClient)
 	{
@@ -149,7 +181,7 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 
 	// Get Client User
-	steamUser = (IClientUser *)steamClient->GetIClientUser(clientUser, pipeSteam, CLIENTUSER_INTERFACE_VERSION);
+	steamUser = reinterpret_cast<IClientUser*>(steamClient->GetIClientUser(clientUser, pipeSteam, CLIENTUSER_INTERFACE_VERSION));
 
 	if (!steamUser)
 	{
@@ -164,7 +196,7 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 
 	// Get Friends
-	steamFriends = (IClientFriends *)steamClient->GetIClientFriends(clientUser, pipeSteam, CLIENTFRIENDS_INTERFACE_VERSION);
+	steamFriends = reinterpret_cast<IClientFriends*>((IClientFriends *)steamClient->GetIClientFriends(clientUser, pipeSteam, CLIENTFRIENDS_INTERFACE_VERSION));
 
 	if (!steamFriends)
 	{
@@ -177,12 +209,25 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	}
 
 
+
+	// Add natives and register library 
+	sharesys->AddNatives(myself, messagebot_natives);
+	sharesys->RegisterLibrary(myself, "messagebot");
+
+
+	// GameFrame
+	smutils->AddGameFrameHook(&OnGameFrameHit);
+	g_pPawnMutex = threader->MakeMutex();
+
+
+
 	// Loaded
 	extensionLoaded = true;
 
 
 	// Start the watch Thread
 	threading = threader->MakeThread(new watchThread(), Thread_Default);
+
 
 	// Loaded
 	return true;
@@ -298,7 +343,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 		if (queueStart != NULL && steamUser != NULL)
 		{
 			// Login
-			steamUser->LogOnWithPassword(true, queueStart->getUsername(), queueStart->getPassword());
+			steamUser->LogOnWithPassword(false, queueStart->getUsername(), queueStart->getPassword());
 
 
 			// Finished or Error?
@@ -316,8 +361,11 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			while(time(0) < timeout && extensionLoaded)
 			{
 				// Get last callbacks
-				while (Steam_BGetCallback(pipeSteam, &callBack))
+				while (GetCallback(pipeSteam, &callBack))
 				{
+					// Free it
+					FreeLastCallback(pipeSteam);
+
 					// Logged In?
 					if (callBack.m_iCallback == SteamServersConnected_t::k_iCallback && steamUser != NULL)
 					{
@@ -326,9 +374,9 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 
 						// Logged in!
 						steamUser->SetSelfAsPrimaryChatDestination();
-						steamFriends->SetPersonaState(k_EPersonaStateOnline);
+						steamFriends->SetPersonaState(queueStart->getOnline());
 
-
+						
 						// Add all Recipients and send message
 						for (int i = 0; i < MAX_RECIPIENTS; i++)
 						{
@@ -341,8 +389,9 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 									steamFriends->AddFriend(*recipients[i]);
 								}
 
+
 								// Send him the message
-								if (steamFriends->SendMsgToFriend(*recipients[i], k_EChatEntryTypeChatMsg, message, strlen(message) + 1))
+								if (steamFriends->ReplyToFriendMessage(*recipients[i], message))
 								{
 									// We found one
 									foundData = true;
@@ -372,26 +421,16 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					// Error on connect
 					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && steamFriends != NULL)
 					{
-						// Login Error
-						g_pSM->LogError(myself, "Couldn't login in %s's account.", queueStart->getUsername());
-
-
 						// Get Error Code
 						SteamServerConnectFailure_t *error = (SteamServerConnectFailure_t *)callBack.m_pubParam;
 
 						// We have a Login Error
-						prepareForward(queueStart->getCallback(), LOGIN_ERROR, error->m_eResult);
+						prepareForward(queueStart->getCallback(), LOGIN_ERROR, (int)error->m_eResult);
 
 
 						// Found Error
 						foundError = true;
 					}
-
-
-
-					// Free callback
-					Steam_FreeLastCallback(pipeSteam);
-
 
 
 					// We found a error or finished -> stop here
@@ -401,19 +440,22 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					}
 				}
 
+
 				// We found a error -> stop here
 				if (foundError || finished)
 				{
 					break;
 				}
 
+
 				// Sleep here
 				#if defined _WIN32
 					Sleep(10);
 				#elif defined _LINUX
-					usleep(10);
+					usleep(10000);
 				#endif
 			}
+
 
 			// Timeout
 			if (!foundError && !finished)
@@ -426,11 +468,11 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			queueStart->remove();
 
 
-			// Sleep here
+			// Sleep here before going off^^
 			#if defined _WIN32
-				Sleep(100);
+				Sleep(1000);
 			#elif defined _LINUX
-				usleep(100);
+				usleep(1000000);
 			#endif
 
 
@@ -438,11 +480,12 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			steamUser->LogOff();
 		}
 		
-		// Sleep here
+
+		// Sleep here, sleeping is sooo good :)
 		#if defined _WIN32
-			Sleep(100);
+			Sleep(2000);
 		#elif defined _LINUX
-			usleep(100);
+			usleep(2000000);
 		#endif
 	}
 }
@@ -462,7 +505,6 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 	char *message;
 
 
-
 	// Get Data
 	callback = pContext->GetFunctionById(params[1]);
 
@@ -472,7 +514,7 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 	if (callback != NULL)
 	{
 		// Create new Queue
-		Queue *newQueue = new Queue(callback, username, password, message);
+		Queue *newQueue = new Queue(callback, username, password, message, params[3]);
 
 		// Add Head
 		if (queueStart == NULL)
@@ -482,18 +524,10 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 		else
 		{
 			// Add at end
-			Queue *start = queueStart;
-
-			while (start->getNext() != NULL)
-			{
-				start = start->getNext();
-			}
-
-			// Add
-			start->setNext(newQueue);
+			queueStart->add(newQueue);
 		}
 	}
-
+	
 	return 0;
 }
 
@@ -538,7 +572,7 @@ cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 	// Check duplicate
 	for (int i=0; i < MAX_RECIPIENTS; i++)
 	{
-		// Empty?
+		// Not Empty?
 		if (recipients[i] != NULL)
 		{
 			if (strcmp(recipients[i]->Render(), steamid) == 0 || (commID != 0 && commID == recipients[i]->ConvertToUint64()))
@@ -699,11 +733,21 @@ cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params
 
 
 // Queue Class
-Queue::Queue(IPluginFunction *func, char *name, char *pw, char *message)
+Queue::Queue(IPluginFunction *func, char *name, char *pw, char *message, int online)
 {
 	user = name;
 	pass = pw;
 	txt = message;
+
+	// Show online?
+	if (online == 0)
+	{
+		state = k_EPersonaStateOffline;
+	}
+	else
+	{
+		state = k_EPersonaStateOnline;
+	}
 
 	callback = func; 
 	next = NULL;
@@ -733,6 +777,12 @@ char *Queue::getMessage()
 }
 
 
+
+EPersonaState Queue::getOnline() 
+{
+	return state;
+}
+
 IPluginFunction *Queue::getCallback() 
 {
 	return callback;
@@ -742,12 +792,20 @@ IPluginFunction *Queue::getCallback()
 
 
 
-// Set the next item on the list
-void Queue::setNext(Queue *queueNext) 
+// Add new item at the end
+void Queue::add(Queue *newQueue)
 {
-	next = queueNext;
+	// if next -> recursiv
+	if (next != NULL)
+	{
+		next->add(newQueue);
+	}
+	else
+	{
+		// if end -> at here
+		next = newQueue;
+	}
 }
-
 
 
 // Remove first item on the queue

@@ -37,8 +37,12 @@
 
 // Includes
 #include <Steamworks.h>
+#include <stdlib.h>
 
 #include "smsdk_ext.h"
+
+
+
 
 
 
@@ -74,6 +78,7 @@ class Queue
 {
 private:
 	IPluginFunction *callback;
+	EPersonaState state;
 
 	char *user;
 	char *pass;
@@ -82,7 +87,7 @@ private:
 	Queue *next;
 
 public:
-	Queue(IPluginFunction *func, char *name, char *pw, char *message);
+	Queue(IPluginFunction *func, char *name, char *pw, char *message, int online);
 
 	
 	// get methods
@@ -92,14 +97,14 @@ public:
 
 	Queue *getNext();
 	IPluginFunction *getCallback();
-
-
-	// set methods
-	void setNext(Queue *queueNext);
+	EPersonaState getOnline();
 
 	
 	// Remove last item
 	void remove();
+
+	// Add new item at the end
+	void add(Queue *newQueue);
 };
 
 
@@ -132,6 +137,13 @@ public:
 
 
 
+
+
+
+
+// Steam Methods
+typedef bool (*GetCallbackFn)(HSteamPipe hSteamPipe, CallbackMsg_t *pCallbackMsg);
+typedef void (*FreeLastCallbackFn)(HSteamPipe hSteamPipe);
 
 
 

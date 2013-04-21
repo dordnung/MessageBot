@@ -12,7 +12,7 @@ OPENSTEAMSDK = ../opensteamworks
 ### EDIT BELOW FOR OTHER PROJECTS ###
 #####################################
 
-PROJECT = steamclient
+PROJECT = messagebot
 
 #Uncomment for Metamod: Source enabled extension
 #USEMETA = true
@@ -38,15 +38,15 @@ INCLUDE += -I. -I.. -Isdk -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMS
 LINK += $(OPENSTEAMSDK)/libs/steamclient.a -m32 -lm -ldl
 
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
-	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
-	-Wno-overloaded-virtual -Wno-switch -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
+	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
+	-Wno-overloaded-virtual -Wno-switch -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
 CPPFLAGS += -Wno-non-virtual-dtor -fno-exceptions -fno-rtti
 
 ################################################
 ### DO NOT EDIT BELOW HERE FOR MOST PROJECTS ###
 ################################################
 
-BINARY = $(PROJECT).ext
+BINARY = $(PROJECT).ext.so
 
 ifeq "$(DEBUG)" "true"
 	BIN_DIR = Debug
