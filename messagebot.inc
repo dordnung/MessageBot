@@ -9,6 +9,9 @@
 // Maximum Recipients
 #define MAX_RECIPIENTS 300
 
+// Max Message Length
+#define MAX_MESSAGE_LENGTH 1024
+
 
 
 

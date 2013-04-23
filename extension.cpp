@@ -48,8 +48,8 @@ CSteamID *recipients[MAX_RECIPIENTS];
 
 
 // User Data
-char *username;
-char *password;
+char username[128];
+char password[128];
 
 
 // Steam stuff
@@ -95,8 +95,8 @@ sp_nativeinfo_t messagebot_natives[] =
 bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 {
 	// Empty username and password
-	username = "";
-	password = "";
+	strcpy(username, "");
+	strcpy(password, "");
 
 
 	// Load DLL or SO
@@ -516,13 +516,14 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 	IPluginFunction *callback;
 
 	// Message
-	char *message;
-
+	char message[MAX_MESSAGE_LENGTH];
+	char *message_cpy;
 
 	// Get Data
 	callback = pContext->GetFunctionById(params[1]);
 
-	pContext->LocalToString(params[2], &message);
+	pContext->LocalToString(params[2], &message_cpy);
+	strcpy(message, message_cpy);
 
 
 	if (callback != NULL)
@@ -551,9 +552,17 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 // Set the login data
 cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params)
 {
+	// User Data
+	char *username_cpy;
+	char *password_cpy;
+
 	// Get global username and password
-	pContext->LocalToString(params[1], &username);
-	pContext->LocalToString(params[2], &password);
+	pContext->LocalToString(params[1], &username_cpy);
+	pContext->LocalToString(params[2], &password_cpy);
+
+	// Copy Strings
+	strcpy(username, username_cpy);
+	strcpy(password, password_cpy);
 
 	return 0;
 }
@@ -565,12 +574,15 @@ cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params)
 cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 {
 	// User Data
-	char *steamid;
+	char steamid[128];
+	char *steamid_cpy;
+
 	uint64 commID = 0;
 
+	// Get String
+	pContext->LocalToString(params[1], &steamid_cpy);
 
-	// Get Steamid
-	pContext->LocalToString(params[1], &steamid);
+	strcpy(steamid, steamid_cpy);
 
 
 	// Convert to uint64
@@ -646,10 +658,15 @@ cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params)
 {
 	// User Data
-	char *steamid;
+	char steamid[128];
+	char *steamid_cpy;
+
 	uint64 commID = 0;
 
-	pContext->LocalToString(params[1], &steamid);
+	// Get String
+	pContext->LocalToString(params[1], &steamid_cpy);
+
+	strcpy(steamid, steamid_cpy);
 
 
 	// Convert to uint64
@@ -690,10 +707,15 @@ cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params
 cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params)
 {
 	// User Data
-	char *steamid;
+	char steamid[128];
+	char *steamid_cpy;
+
 	uint64 commID = 0;
 
-	pContext->LocalToString(params[1], &steamid);
+	// Get String
+	pContext->LocalToString(params[1], &steamid_cpy);
+
+	strcpy(steamid, steamid_cpy);
 
 
 	// Convert to uint64
@@ -749,9 +771,9 @@ cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params
 // Queue Class
 Queue::Queue(IPluginFunction *func, char *name, char *pw, char *message, int online)
 {
-	user = name;
-	pass = pw;
-	txt = message;
+	strcpy(user, name);
+	strcpy(pass, pw);
+	strcpy(txt, message);
 
 	// Show online?
 	if (online == 0)
@@ -770,34 +792,34 @@ Queue::Queue(IPluginFunction *func, char *name, char *pw, char *message, int onl
 
 
 // Get Methods for queue
-Queue *Queue::getNext() 
+Queue *Queue::getNext() const
 {
 	return next;
 }
 
-char* Queue::getUsername() 
+char* Queue::getUsername() const
 {
-	return user;
+	return (char*)user;
 }
 
-char *Queue::getPassword() 
+char *Queue::getPassword() const
 {
-	return pass;
+	return (char*)pass;
 }
 
-char *Queue::getMessage() 
+char *Queue::getMessage() const
 {
-	return txt;
+	return (char*)txt;
 }
 
 
 
-EPersonaState Queue::getOnline() 
+EPersonaState Queue::getOnline() const
 {
 	return state;
 }
 
-IPluginFunction *Queue::getCallback() 
+IPluginFunction *Queue::getCallback() const
 {
 	return callback;
 }
