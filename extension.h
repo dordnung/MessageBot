@@ -35,6 +35,10 @@
 #define MAX_RECIPIENTS 300
 
 
+// Max recipients
+#define MAX_MESSAGE_LENGTH 1024
+
+
 // Includes
 #include <Steamworks.h>
 #include <stdlib.h>
@@ -80,9 +84,9 @@ private:
 	IPluginFunction *callback;
 	EPersonaState state;
 
-	char *user;
-	char *pass;
-	char *txt;
+	char user[128];
+	char pass[128];
+	char txt[MAX_MESSAGE_LENGTH];
 
 	Queue *next;
 
@@ -91,13 +95,13 @@ public:
 
 	
 	// get methods
-	char *getUsername();
-	char *getPassword();
-	char *getMessage();
+	char *getUsername() const;
+	char *getPassword() const;
+	char *getMessage()const ;
 
-	Queue *getNext();
-	IPluginFunction *getCallback();
-	EPersonaState getOnline();
+	Queue *getNext() const ;
+	IPluginFunction *getCallback() const;
+	EPersonaState getOnline() const;
 
 	
 	// Remove last item
