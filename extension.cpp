@@ -241,14 +241,15 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 // Unloaded
 void MessageBot::SDK_OnUnload()
 {
+	// unLoaded
+	extensionLoaded = false;
+
 	// Stop Thread
-	if (threading != NULL)
+	if (threading != NULL && threading->GetState() != Thread_Done)
 	{
+		threading->WaitForThread();
 		threading->DestroyThis();
 	}
-
-	// Loaded
-	extensionLoaded = false;
 
 
 	// Disconnect here
@@ -282,7 +283,6 @@ void MessageBot::SDK_OnUnload()
 
 	// Remove Frame hook and mutex
 	smutils->RemoveGameFrameHook(&OnGameFrameHit);
-
 	g_pPawnMutex->DestroyThis();
 }
 
@@ -340,7 +340,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 	while (extensionLoaded)
 	{
 		// Item in list?
-		if (queueStart != NULL && steamUser != NULL)
+		if (queueStart != NULL)
 		{
 			// Login
 			steamUser->LogOnWithPassword(false, queueStart->getUsername(), queueStart->getPassword());
@@ -361,13 +361,13 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			while(time(0) < timeout && extensionLoaded)
 			{
 				// Get last callbacks
-				while (GetCallback(pipeSteam, &callBack))
+				while (GetCallback(pipeSteam, &callBack) && extensionLoaded)
 				{
 					// Free it
 					FreeLastCallback(pipeSteam);
 
 					// Logged In?
-					if (callBack.m_iCallback == SteamServersConnected_t::k_iCallback && steamUser != NULL)
+					if (callBack.m_iCallback == SteamServersConnected_t::k_iCallback && extensionLoaded)
 					{
 						bool foundData = false;
 						char *message = queueStart->getMessage();
@@ -380,18 +380,24 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 						// Add all Recipients and send message
 						for (int i = 0; i < MAX_RECIPIENTS; i++)
 						{
+							// Break if unloaded
+							if (!extensionLoaded)
+							{
+								break;
+							}
+
 							// Valid Steamid?
 							if (recipients[i] != NULL && steamFriends != NULL)
 							{
 								// Add Recipients
-								if (steamFriends->GetFriendRelationship(*recipients[i]) != k_EFriendRelationshipFriend)
+								if (extensionLoaded && steamFriends->GetFriendRelationship(*recipients[i]) != k_EFriendRelationshipFriend)
 								{
 									steamFriends->AddFriend(*recipients[i]);
 								}
 
 
 								// Send him the message
-								if (steamFriends->ReplyToFriendMessage(*recipients[i], message))
+								if (extensionLoaded && steamFriends->ReplyToFriendMessage(*recipients[i], message))
 								{
 									// We found one
 									foundData = true;
@@ -419,7 +425,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					}
 
 					// Error on connect
-					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && steamFriends != NULL)
+					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && extensionLoaded)
 					{
 						// Get Error Code
 						SteamServerConnectFailure_t *error = (SteamServerConnectFailure_t *)callBack.m_pubParam;
@@ -434,7 +440,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 
 
 					// We found a error or finished -> stop here
-					if (foundError || finished)
+					if (foundError || finished || !extensionLoaded)
 					{
 						break;
 					}
@@ -442,7 +448,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 
 
 				// We found a error -> stop here
-				if (foundError || finished)
+				if (foundError || finished || !extensionLoaded)
 				{
 					break;
 				}
@@ -468,25 +474,33 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			queueStart->remove();
 
 
-			// Sleep here before going off^^
+			// Extension loaded?
+			if (extensionLoaded)
+			{
+				// Sleep here before going off^^
+				#if defined _WIN32
+					Sleep(1000);
+				#elif defined _LINUX
+					usleep(1000000);
+				#endif
+
+
+				// Logout
+				steamUser->LogOff();
+			}
+		}
+		
+		
+		// Extension loaded?
+		if (extensionLoaded)
+		{
+			// Sleep here, sleeping is sooo good :)
 			#if defined _WIN32
 				Sleep(1000);
 			#elif defined _LINUX
 				usleep(1000000);
 			#endif
-
-
-			// Logout
-			steamUser->LogOff();
 		}
-		
-
-		// Sleep here, sleeping is sooo good :)
-		#if defined _WIN32
-			Sleep(2000);
-		#elif defined _LINUX
-			usleep(2000000);
-		#endif
 	}
 }
 
@@ -902,8 +916,11 @@ CSteamID *steamIDtoCSteamID (char* steamid)
 	uint64 uintID = (uint64)authID * 2;
 
 	// Convert to a uint64
-	uintID += 76561197960265728 + server;
-
+	#if defined _WIN32
+		uintID += 76561197960265728 + server;
+	#elif defined _LINUX
+		uintID += 76561197960265728LLU + server;
+	#endif
 
 	// Return it
 	return new CSteamID(uintID);

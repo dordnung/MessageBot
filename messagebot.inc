@@ -60,7 +60,7 @@ native MessageBot_SetLoginData(const String:steamUsername[], const String:steamP
  * @param showOnline 		  Show that bot is online?
  * @noreturn
  */
-native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[], bool:showOnlien=true);
+native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[], bool:showOnline=true);
 
 
 
