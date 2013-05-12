@@ -313,7 +313,6 @@ void OnGameFrameHit(bool simulating)
 
 		if (pFunc != NULL && pFunc->IsRunnable())
 		{
-
 			pFunc->PushCell(pReturn->result);
 			pFunc->PushCell(pReturn->error);
 			pFunc->Execute(NULL);
@@ -338,12 +337,27 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 {
 	// Infinite Loop while loaded
 	while (extensionLoaded)
-	{
+	{		
+		// Extension loaded?
+		if (extensionLoaded)
+		{
+			// Sleep here, sleeping is sooo good :)
+			Sleeping(1000);
+		}
+
+
 		// Item in list?
 		if (queueStart != NULL)
 		{
 			// Login
-			steamUser->LogOnWithPassword(false, queueStart->getUsername(), queueStart->getPassword());
+			steamUser->SetLoginInformation(queueStart->getUsername(), queueStart->getPassword(), true);
+			
+			if (steamUser->BAccountLocked() || steamUser->BLoggedOn())
+			{
+				continue;
+			}
+
+			steamUser->LogOnWithPassword(true, queueStart->getUsername(), queueStart->getPassword());
 
 
 			// Finished or Error?
@@ -370,13 +384,19 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					if (callBack.m_iCallback == SteamServersConnected_t::k_iCallback && extensionLoaded)
 					{
 						bool foundData = false;
+						bool foundUser = false;
 						char *message = queueStart->getMessage();
+
 
 						// Logged in!
 						steamUser->SetSelfAsPrimaryChatDestination();
 						steamFriends->SetPersonaState(queueStart->getOnline());
 
+
+						// Sleep before sending
+						Sleeping(500);
 						
+
 						// Add all Recipients and send message
 						for (int i = 0; i < MAX_RECIPIENTS; i++)
 						{
@@ -389,6 +409,9 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 							// Valid Steamid?
 							if (recipients[i] != NULL && steamFriends != NULL)
 							{
+								// We found one
+								foundUser = true;
+
 								// Add Recipients
 								if (extensionLoaded && steamFriends->GetFriendRelationship(*recipients[i]) != k_EFriendRelationshipFriend)
 								{
@@ -396,21 +419,41 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 								}
 
 
+								// Sleep before message
+								Sleeping(10);
+
+
 								// Send him the message
-								if (extensionLoaded && steamFriends->ReplyToFriendMessage(*recipients[i], message))
+								if (extensionLoaded)
 								{
-									// We found one
-									foundData = true;
+									if (steamFriends->ReplyToFriendMessage(*recipients[i], message))
+									{
+										// We found one
+										foundData = true;
+									}
+									else if (steamFriends->SendMsgToFriend(*recipients[i], k_EChatEntryTypeChatMsg, message, strlen(message + 1)))
+									{
+										foundData = true;
+									}
 								}
 							}
 						}
 
 
 						// Array is empty?
-						if (!foundData)
+						if (!foundUser)
 						{
 							// Array is Empty !
 							prepareForward(queueStart->getCallback(), ARRAY_EMPTY);
+
+							// Found Error
+							foundError = true;
+						}
+
+						// no receiver?
+						else if (!foundData)
+						{
+							prepareForward(queueStart->getCallback(), NO_RECEIVER);
 
 							// Found Error
 							foundError = true;
@@ -427,11 +470,15 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					// Error on connect
 					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && extensionLoaded)
 					{
+						int result;
+
 						// Get Error Code
 						SteamServerConnectFailure_t *error = (SteamServerConnectFailure_t *)callBack.m_pubParam;
 
+						result = error->m_eResult;
+
 						// We have a Login Error
-						prepareForward(queueStart->getCallback(), LOGIN_ERROR, (int)error->m_eResult);
+						prepareForward(queueStart->getCallback(), LOGIN_ERROR, result);
 
 
 						// Found Error
@@ -455,11 +502,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 
 
 				// Sleep here
-				#if defined _WIN32
-					Sleep(10);
-				#elif defined _LINUX
-					usleep(10000);
-				#endif
+				Sleeping(10);
 			}
 
 
@@ -478,28 +521,12 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			if (extensionLoaded)
 			{
 				// Sleep here before going off^^
-				#if defined _WIN32
-					Sleep(1000);
-				#elif defined _LINUX
-					usleep(1000000);
-				#endif
+				Sleeping(1000);
 
-
+				
 				// Logout
 				steamUser->LogOff();
 			}
-		}
-		
-		
-		// Extension loaded?
-		if (extensionLoaded)
-		{
-			// Sleep here, sleeping is sooo good :)
-			#if defined _WIN32
-				Sleep(1000);
-			#elif defined _LINUX
-				usleep(1000000);
-			#endif
 		}
 	}
 }

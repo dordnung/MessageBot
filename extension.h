@@ -48,6 +48,15 @@
 
 
 
+// Sleeping
+#if defined _WIN32
+	#define Sleeping(x) Sleep(x);
+#elif defined _LINUX
+	#define Sleeping(x) usleep(x*1000);
+#endif
+
+
+
 
 
 
@@ -58,6 +67,7 @@ enum CallBackResult
 	LOGIN_ERROR,
 	TIMEOUT_ERROR,
 	ARRAY_EMPTY,
+	NO_RECEIVER
 };
 
 
