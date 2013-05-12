@@ -67,7 +67,7 @@ enum CallBackResult
 	LOGIN_ERROR,
 	TIMEOUT_ERROR,
 	ARRAY_EMPTY,
-	NO_RECEIVER
+	NO_RECEIVER,
 };
 
 
@@ -128,11 +128,15 @@ public:
 // Thread wachting for new messages
 class watchThread : public IThread
 {
+private:
+	bool setup;
+
 public:
-	watchThread() : IThread() {};
+	watchThread() : IThread() {setup = false;}
 
 	void RunThread(IThreadHandle *pThread);
 	void OnTerminate(IThreadHandle *pThread, bool cancel) {};
+	bool DoSetup();
 };
 
 
@@ -145,7 +149,7 @@ typedef struct
 public:
 	IPluginFunction *pFunc;
 	CallBackResult result;
-	cell_t error;
+	EResult error;
 
 } PawnFuncThreadReturn;
 
@@ -166,7 +170,7 @@ void OnGameFrameHit(bool simulating);
 
 
 // Prepare Forward
-void prepareForward(IPluginFunction *func, CallBackResult result, cell_t error = 0);
+void prepareForward(IPluginFunction *func, CallBackResult result, EResult error);
 
 
 // Natives

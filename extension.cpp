@@ -99,116 +99,6 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	strcpy(password, "");
 
 
-	// Load DLL or SO
-	#if defined _WIN32
-		DynamicLibrary lib("steamclient.dll");
-	#elif defined _LINUX
-		DynamicLibrary lib("steamclient.so");
-	#endif
-
-
-
-	// is Loaded?
-	if (!lib.IsLoaded())
-	{
-		g_pSM->LogError(myself, "Unable to load steam engine.");
-
-		return false;
-	}
-
-
-
-	// Factory
-	CreateInterfaceFn factory = reinterpret_cast<CreateInterfaceFn>(lib.GetSymbol("CreateInterface"));
-
-	// Get Factory
-	if (!factory)
-	{
-		g_pSM->LogError(myself, "Unable to load steamclient factory.");
-
-		return false;
-	}
-
-
-
-
-	// Callback
-	GetCallback = reinterpret_cast<GetCallbackFn>(lib.GetSymbol("Steam_BGetCallback"));
-
-	if (GetCallback == 0)
-	{
-		g_pSM->LogError(myself, "Unable to load Steam callback.");
-
-		return false;
-	}
-
-
-
-	FreeLastCallback = reinterpret_cast<FreeLastCallbackFn>(lib.GetSymbol("Steam_FreeLastCallback"));
-
-	if (FreeLastCallback == 0)
-	{
-		g_pSM->LogError(myself, "Unable to load Steam free callback.");
-
-		return false;
-	}
-
-
-
-
-	// Get Steam Engine
-	steamClient = reinterpret_cast<IClientEngine*>(factory(CLIENTENGINE_INTERFACE_VERSION, NULL));
-
-	if (!steamClient)
-	{
-		g_pSM->LogError(myself, "Unable to get the client engine.");
-
-		return false;
-	}
-
-
-
-	// Get User
-	clientUser = steamClient->CreateLocalUser(&pipeSteam, k_EAccountTypeIndividual);
-
-	if (!clientUser || !pipeSteam)
-	{
-		g_pSM->LogError(myself, "Unable to create the local user.");
-
-		return false;
-	}
-
-
-
-	// Get Client User
-	steamUser = reinterpret_cast<IClientUser*>(steamClient->GetIClientUser(clientUser, pipeSteam, CLIENTUSER_INTERFACE_VERSION));
-
-	if (!steamUser)
-	{
-		g_pSM->LogError(myself, "Unable to get the client user interface.");
-
-		steamClient->ReleaseUser(pipeSteam, clientUser);
-		steamClient->BReleaseSteamPipe(pipeSteam);
-
-		return false;
-	}
-
-
-
-	// Get Friends
-	steamFriends = reinterpret_cast<IClientFriends*>((IClientFriends *)steamClient->GetIClientFriends(clientUser, pipeSteam, CLIENTFRIENDS_INTERFACE_VERSION));
-
-	if (!steamFriends)
-	{
-		g_pSM->LogError(myself, "Unable to get the client friends interface.");
-
-		steamClient->ReleaseUser(pipeSteam, clientUser);
-		steamClient->BReleaseSteamPipe(pipeSteam);
-
-		return false;
-	}
-
-
 
 	// Add natives and register library 
 	sharesys->AddNatives(myself, messagebot_natives);
@@ -338,25 +228,24 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 	// Infinite Loop while loaded
 	while (extensionLoaded)
 	{		
+		// steam connection setup
+		if (!setup && extensionLoaded)
+		{
+			setup = DoSetup();
+		}
+
 		// Extension loaded?
 		if (extensionLoaded)
 		{
 			// Sleep here, sleeping is sooo good :)
-			Sleeping(1000);
+			Sleeping(2000);
 		}
 
 
 		// Item in list?
-		if (queueStart != NULL)
+		if (extensionLoaded && queueStart != NULL)
 		{
 			// Login
-			steamUser->SetLoginInformation(queueStart->getUsername(), queueStart->getPassword(), true);
-			
-			if (steamUser->BAccountLocked() || steamUser->BLoggedOn())
-			{
-				continue;
-			}
-
 			steamUser->LogOnWithPassword(true, queueStart->getUsername(), queueStart->getPassword());
 
 
@@ -380,9 +269,13 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					// Free it
 					FreeLastCallback(pipeSteam);
 
+
 					// Logged In?
 					if (callBack.m_iCallback == SteamServersConnected_t::k_iCallback && extensionLoaded)
 					{
+						Sleeping(rand() % 200 + 1);
+
+
 						bool foundData = false;
 						bool foundUser = false;
 						char *message = queueStart->getMessage();
@@ -391,10 +284,10 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 						// Logged in!
 						steamUser->SetSelfAsPrimaryChatDestination();
 						steamFriends->SetPersonaState(queueStart->getOnline());
-
+						
 
 						// Sleep before sending
-						Sleeping(500);
+						Sleeping(rand() % 400 + 1);
 						
 
 						// Add all Recipients and send message
@@ -420,7 +313,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 
 
 								// Sleep before message
-								Sleeping(10);
+								Sleeping(2);
 
 
 								// Send him the message
@@ -444,7 +337,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 						if (!foundUser)
 						{
 							// Array is Empty !
-							prepareForward(queueStart->getCallback(), ARRAY_EMPTY);
+							prepareForward(queueStart->getCallback(), ARRAY_EMPTY, k_EResultOK);
 
 							// Found Error
 							foundError = true;
@@ -453,7 +346,7 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 						// no receiver?
 						else if (!foundData)
 						{
-							prepareForward(queueStart->getCallback(), NO_RECEIVER);
+							prepareForward(queueStart->getCallback(), NO_RECEIVER, k_EResultOK);
 
 							// Found Error
 							foundError = true;
@@ -461,24 +354,22 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 						else
 						{
 							// Success :)
-							prepareForward(queueStart->getCallback(), SUCCESS);
+							prepareForward(queueStart->getCallback(), SUCCESS, k_EResultOK);
 
 							finished = true;
 						}
 					}
 
+
 					// Error on connect
 					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && extensionLoaded)
 					{
-						int result;
-
 						// Get Error Code
 						SteamServerConnectFailure_t *error = (SteamServerConnectFailure_t *)callBack.m_pubParam;
 
-						result = error->m_eResult;
 
 						// We have a Login Error
-						prepareForward(queueStart->getCallback(), LOGIN_ERROR, result);
+						prepareForward(queueStart->getCallback(), LOGIN_ERROR, (EResult)error->m_eResult);
 
 
 						// Found Error
@@ -509,26 +400,142 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			// Timeout
 			if (!foundError && !finished)
 			{
-				prepareForward(queueStart->getCallback(), TIMEOUT_ERROR);
+				prepareForward(queueStart->getCallback(), TIMEOUT_ERROR, k_EResultOK);
 			}
 
 
 			// Remove last
 			queueStart->remove();
 
-
+			
 			// Extension loaded?
 			if (extensionLoaded)
 			{
-				// Sleep here before going off^^
-				Sleeping(1000);
+				// Sleep here
+				Sleeping(200);
 
-				
 				// Logout
 				steamUser->LogOff();
 			}
 		}
 	}
+}
+
+
+
+// Setup steam connection
+bool watchThread::DoSetup()
+{
+	// Load DLL or SO
+	#if defined _WIN32
+		DynamicLibrary lib("steamclient.dll");
+	#elif defined _LINUX
+		DynamicLibrary lib("steamclient.so");
+	#endif
+
+
+
+	// is Loaded?
+	if (!lib.IsLoaded())
+	{
+		g_pSM->LogError(myself, "Unable to load steam engine.");
+
+		return false;
+	}
+
+
+
+	// Factory
+	CreateInterfaceFn factory = reinterpret_cast<CreateInterfaceFn>(lib.GetSymbol("CreateInterface"));
+
+	// Get Factory
+	if (!factory)
+	{
+		g_pSM->LogError(myself, "Unable to load steamclient factory.");
+
+		return false;
+	}
+
+
+
+
+	// Callback
+	GetCallback = reinterpret_cast<GetCallbackFn>(lib.GetSymbol("Steam_BGetCallback"));
+
+	if (GetCallback == 0)
+	{
+		g_pSM->LogError(myself, "Unable to load Steam callback.");
+
+		return false;
+	}
+
+
+
+	FreeLastCallback = reinterpret_cast<FreeLastCallbackFn>(lib.GetSymbol("Steam_FreeLastCallback"));
+
+	if (FreeLastCallback == 0)
+	{
+		g_pSM->LogError(myself, "Unable to load Steam free callback.");
+
+		return false;
+	}
+
+
+
+
+	// Get Steam Engine
+	steamClient = reinterpret_cast<IClientEngine*>(factory(CLIENTENGINE_INTERFACE_VERSION, NULL));
+
+	if (!steamClient)
+	{
+		g_pSM->LogError(myself, "Unable to get the client engine.");
+
+		return false;
+	}
+
+
+
+	// Get User
+	clientUser = steamClient->CreateLocalUser(&pipeSteam, k_EAccountTypeIndividual);
+
+	if (!clientUser || !pipeSteam)
+	{
+		g_pSM->LogError(myself, "Unable to create the local user.");
+
+		return false;
+	}
+
+
+
+	// Get Client User
+	steamUser = reinterpret_cast<IClientUser*>(steamClient->GetIClientUser(clientUser, pipeSteam, CLIENTUSER_INTERFACE_VERSION));
+
+	if (!steamUser)
+	{
+		g_pSM->LogError(myself, "Unable to get the client user interface.");
+
+		steamClient->ReleaseUser(pipeSteam, clientUser);
+		steamClient->BReleaseSteamPipe(pipeSteam);
+
+		return false;
+	}
+
+
+
+	// Get Friends
+	steamFriends = reinterpret_cast<IClientFriends*>((IClientFriends *)steamClient->GetIClientFriends(clientUser, pipeSteam, CLIENTFRIENDS_INTERFACE_VERSION));
+
+	if (!steamFriends)
+	{
+		g_pSM->LogError(myself, "Unable to get the client friends interface.");
+
+		steamClient->ReleaseUser(pipeSteam, clientUser);
+		steamClient->BReleaseSteamPipe(pipeSteam);
+
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -895,7 +902,7 @@ void Queue::remove()
 
 
 // Prepare the Forward
-void prepareForward(IPluginFunction *func, CallBackResult result, cell_t error)
+void prepareForward(IPluginFunction *func, CallBackResult result, EResult error)
 {
 	// Create return
 	PawnFuncThreadReturn *pReturn = new PawnFuncThreadReturn;
