@@ -21,6 +21,7 @@ enum MessageBotResult
 	RESULT_LOGIN_ERROR,   	  // Error while trying to login
 	RESULT_TIMEOUT_ERROR,     // Operation timed out
 	RESULT_RECIPIENTS_EMPTY,  // No recipients were setup prior to sending a message
+	RESULT_NO_RECEIVER,
 }
 
 
