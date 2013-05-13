@@ -36,11 +36,10 @@
 
 // Are we loaded?
 bool extensionLoaded;
-
+bool volatile m_locked; 
 
 // For Forward
 CVector<PawnFuncThreadReturn *> vecPawnReturn;
-IMutex *g_pPawnMutex;
 IThreadHandle *threading;
 
 // Recipients
@@ -107,7 +106,7 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	// GameFrame
 	smutils->AddGameFrameHook(&OnGameFrameHit);
-	g_pPawnMutex = threader->MakeMutex();
+	m_locked = false;
 
 
 
@@ -173,7 +172,6 @@ void MessageBot::SDK_OnUnload()
 
 	// Remove Frame hook and mutex
 	smutils->RemoveGameFrameHook(&OnGameFrameHit);
-	g_pPawnMutex->DestroyThis();
 }
 
 
@@ -184,11 +182,14 @@ void MessageBot::SDK_OnUnload()
 void OnGameFrameHit(bool simulating)
 {
 	// Could lock?
-	if (!g_pPawnMutex->TryLock())
+	if (m_locked)
 	{
 		return;
 	}
 	
+
+	// Lock
+	m_locked = true;
 
 	// Item in vec?
 	if (!vecPawnReturn.empty())
@@ -214,7 +215,7 @@ void OnGameFrameHit(bool simulating)
 	
 
 	// Unlock
-	g_pPawnMutex->Unlock();
+	m_locked = false;
 }
 
 
@@ -917,11 +918,11 @@ void prepareForward(IPluginFunction *func, CallBackResult result, EResult error)
 
 
 	// Push to Vector
-	g_pPawnMutex->Lock();
+	m_locked = true;
 
 	vecPawnReturn.push_back(pReturn);
 
-	g_pPawnMutex->Unlock();
+	m_locked = false;
 }
 
 
