@@ -33,6 +33,8 @@
 #include "extension.h"
 #include "sh_vector.h"
 
+#define DEBUG 0
+
 
 // Are we loaded?
 bool extensionLoaded;
@@ -97,8 +99,8 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	strcpy(username, "");
 	strcpy(password, "");
 
-
-
+	
+	
 	// Add natives and register library 
 	sharesys->AddNatives(myself, messagebot_natives);
 	sharesys->RegisterLibrary(myself, "messagebot");
@@ -112,6 +114,10 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	// Loaded
 	extensionLoaded = true;
+
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Extension loaded, now starting thread...");
+	#endif
 
 
 	// Start the watch Thread
@@ -130,20 +136,32 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 // Unloaded
 void MessageBot::SDK_OnUnload()
 {
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Extension unloaded...");
+	#endif
+
 	// unLoaded
 	extensionLoaded = false;
 
 	// Stop Thread
 	if (threading != NULL && threading->GetState() != Thread_Done)
 	{
+		#if DEBUG == 1
+			smutils->LogMessage(myself, "Waiting for Thread to finish...");
+		#endif
+
 		threading->WaitForThread();
 		threading->DestroyThis();
 	}
 
-
+	
 	// Disconnect here
 	if (steamClient && pipeSteam)
 	{
+		#if DEBUG == 1
+			smutils->LogMessage(myself, "Now Realising from Steam...");
+		#endif
+
 		// Release
 		steamClient->ReleaseUser(pipeSteam, clientUser);
 		steamClient->BReleaseSteamPipe(pipeSteam);
@@ -198,12 +216,15 @@ void OnGameFrameHit(bool simulating)
 		PawnFuncThreadReturn *pReturn = vecPawnReturn.back();
 		vecPawnReturn.pop_back();
 		
-
 		// Call Forward
 		IPluginFunction *pFunc = pReturn->pFunc;
 
 		if (pFunc != NULL && pFunc->IsRunnable())
 		{
+			#if DEBUG == 1
+				smutils->LogMessage(myself, "Pushing result %i with error %i", pReturn->result, pReturn->error);
+			#endif
+
 			pFunc->PushCell(pReturn->result);
 			pFunc->PushCell(pReturn->error);
 			pFunc->Execute(NULL);
@@ -232,6 +253,10 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 		// steam connection setup
 		if (!setup && extensionLoaded)
 		{
+			#if DEBUG == 1
+				smutils->LogMessage(myself, "Starting to call Setup...");
+			#endif
+
 			setup = DoSetup();
 		}
 
@@ -246,6 +271,10 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 		// Item in list?
 		if (extensionLoaded && queueStart != NULL)
 		{
+			#if DEBUG == 1
+				smutils->LogMessage(myself, "We got a call, so login");
+			#endif
+
 			// Login
 			steamUser->LogOnWithPassword(true, queueStart->getUsername(), queueStart->getPassword());
 
@@ -260,6 +289,9 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			// Timeout
 			time_t timeout = time(0) + 10;
 
+			#if DEBUG == 1
+				smutils->LogMessage(myself, "Successfully logged in, now try to send message...");
+			#endif
 
 			// Not longer as 10 seconds
 			while(time(0) < timeout && extensionLoaded)
@@ -276,6 +308,9 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					{
 						Sleeping(rand() % 200 + 1);
 
+						#if DEBUG == 1
+							smutils->LogMessage(myself, "Login is correct...");
+						#endif
 
 						bool foundData = false;
 						bool foundUser = false;
@@ -290,6 +325,9 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 						// Sleep before sending
 						Sleeping(rand() % 400 + 1);
 						
+						#if DEBUG == 1
+							smutils->LogMessage(myself, "Send message to all clients...");
+						#endif
 
 						// Add all Recipients and send message
 						for (int i = 0; i < MAX_RECIPIENTS; i++)
@@ -306,6 +344,10 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 								// We found one
 								foundUser = true;
 
+								#if DEBUG == 1
+									smutils->LogMessage(myself, "Add Steamid as a friend");
+								#endif
+
 								// Add Recipients
 								if (extensionLoaded && steamFriends->GetFriendRelationship(*recipients[i]) != k_EFriendRelationshipFriend)
 								{
@@ -316,17 +358,28 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 								// Sleep before message
 								Sleeping(2);
 
+								#if DEBUG == 1
+									smutils->LogMessage(myself, "Finally try to send the message...");
+								#endif
 
 								// Send him the message
 								if (extensionLoaded)
 								{
 									if (steamFriends->ReplyToFriendMessage(*recipients[i], message))
 									{
+										#if DEBUG == 1
+											smutils->LogMessage(myself, "Sended via first version");
+
+										#endif
 										// We found one
 										foundData = true;
 									}
 									else if (steamFriends->SendMsgToFriend(*recipients[i], k_EChatEntryTypeChatMsg, message, strlen(message + 1)))
 									{
+										#if DEBUG == 1
+											smutils->LogMessage(myself, "Send via second version...");
+										#endif
+
 										foundData = true;
 									}
 								}
@@ -365,6 +418,10 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 					// Error on connect
 					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && extensionLoaded)
 					{
+						#if DEBUG == 1
+							smutils->LogMessage(myself, "Login is NOT correct...");
+						#endif
+						
 						// Get Error Code
 						SteamServerConnectFailure_t *error = (SteamServerConnectFailure_t *)callBack.m_pubParam;
 
@@ -415,6 +472,10 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 				// Sleep here
 				Sleeping(200);
 
+				#if DEBUG == 1
+					smutils->LogMessage(myself, "Now log off...");
+				#endif
+
 				// Logout
 				steamUser->LogOff();
 			}
@@ -434,17 +495,22 @@ bool watchThread::DoSetup()
 		DynamicLibrary lib("steamclient.so");
 	#endif
 
-
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Now loading Steam Client Engine");
+	#endif
 
 	// is Loaded?
 	if (!lib.IsLoaded())
 	{
-		g_pSM->LogError(myself, "Unable to load steam engine.");
+		g_pSM->LogError(myself, "Unable to load steam client engine.");
 
 		return false;
 	}
 
 
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Loaded Steam engine, now create factory");
+	#endif
 
 	// Factory
 	CreateInterfaceFn factory = reinterpret_cast<CreateInterfaceFn>(lib.GetSymbol("CreateInterface"));
@@ -458,6 +524,9 @@ bool watchThread::DoSetup()
 	}
 
 
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Now loading Steam-BGetCallback and FreeLastCallback");
+	#endif
 
 
 	// Callback
@@ -482,6 +551,9 @@ bool watchThread::DoSetup()
 	}
 
 
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Now prepare Steam Engine");
+	#endif
 
 
 	// Get Steam Engine
@@ -535,6 +607,10 @@ bool watchThread::DoSetup()
 
 		return false;
 	}
+
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Finished with Setup");
+	#endif
 
 	return true;
 }
@@ -608,6 +684,10 @@ cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params)
 // Native to add recipient
 cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 {
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Starting to call AddRecipient...");
+	#endif
+
 	// User Data
 	char steamid[128];
 	char *steamid_cpy;
@@ -665,6 +745,10 @@ cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 			// Valid Steamid?
 			if (recipients[i] != NULL && recipients[i]->IsValid())
 			{
+				#if DEBUG == 1
+					smutils->LogMessage(myself, "Finished Successfully with AddRecipient...");
+				#endif
+
 				return 1;
 			}
 			else if (recipients[i] != NULL)
@@ -692,6 +776,10 @@ cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 // Remove a recipient
 cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params)
 {
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Starting to call RemoveRecipient...");
+	#endif
+
 	// User Data
 	char steamid[128];
 	char *steamid_cpy;
