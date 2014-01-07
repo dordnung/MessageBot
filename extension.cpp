@@ -258,6 +258,12 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 			#endif
 
 			setup = DoSetup();
+			
+			if (!setup)
+			{
+				smutils->LogError(myself, "Failed to finish Setup...");
+				continue;
+			}
 		}
 
 		// Extension loaded?
@@ -566,7 +572,11 @@ bool watchThread::DoSetup()
 		return false;
 	}
 
-
+	
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Got steam client, now get local user");
+	#endif
+			
 
 	// Get User
 	clientUser = steamClient->CreateLocalUser(&pipeSteam, k_EAccountTypeIndividual);
@@ -578,7 +588,10 @@ bool watchThread::DoSetup()
 		return false;
 	}
 
-
+	
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Got local user, now get iclientuser");
+	#endif
 
 	// Get Client User
 	steamUser = reinterpret_cast<IClientUser*>(steamClient->GetIClientUser(clientUser, pipeSteam, CLIENTUSER_INTERFACE_VERSION));
@@ -593,7 +606,11 @@ bool watchThread::DoSetup()
 		return false;
 	}
 
-
+	
+	#if DEBUG == 1
+		smutils->LogMessage(myself, "Got iclientuser, now get iclientfriends");
+	#endif
+	
 
 	// Get Friends
 	steamFriends = reinterpret_cast<IClientFriends*>((IClientFriends *)steamClient->GetIClientFriends(clientUser, pipeSteam, CLIENTFRIENDS_INTERFACE_VERSION));
