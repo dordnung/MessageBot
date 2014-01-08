@@ -100,7 +100,9 @@ ITranslator *translator = NULL;
 #if defined SMEXT_ENABLE_NINVOKE
 INativeInterface *ninvoke = NULL;
 #endif
-
+#if defined SMEXT_ENABLE_ROOTCONSOLEMENU
+IRootConsole *rootconsole = NULL;
+#endif
 
 /** Exports the main interface */
 PLATFORM_EXTERN_C IExtensionInterface *GetSMExtAPI()
@@ -188,6 +190,12 @@ bool SDKExtension::OnExtensionLoad(IExtension *me, IShareSys *sys, char *error, 
 #endif
 #if defined SMEXT_ENABLE_TRANSLATOR
 	SM_GET_IFACE(TRANSLATOR, translator);
+#endif
+#if defined SMEXT_ENABLE_NINVOKE
+	SM_GET_IFACE(NINVOKE, ninvoke);
+#endif
+#if defined SMEXT_ENABLE_ROOTCONSOLEMENU
+	SM_GET_IFACE(ROOTCONSOLE, rootconsole);
 #endif
 
 	if (SDK_OnLoad(error, maxlength, late))
@@ -328,8 +336,6 @@ bool SDKExtension::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	GET_V_IFACE_ANY(GetServerFactory, gamedll, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
 #endif
-	GET_V_IFACE_ANY(GetServerFactory, gamedll, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
-	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
 
 	m_SourceMMLoaded = true;
 
