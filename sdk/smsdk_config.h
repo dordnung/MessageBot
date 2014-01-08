@@ -37,7 +37,7 @@
 /* Basic information exposed publicly */
 #define SMEXT_CONF_NAME			"MessageBot"
 #define SMEXT_CONF_DESCRIPTION	"MessageBot Extension"
-#define SMEXT_CONF_VERSION		"1.1"
+#define SMEXT_CONF_VERSION		"1.2"
 #define SMEXT_CONF_AUTHOR		"Popoklopsi"
 #define SMEXT_CONF_URL			"https://forums.alliedmods.net/showthread.php?t=213670"
 #define SMEXT_CONF_LOGTAG		"MessageBot"
@@ -73,6 +73,7 @@
 //#define SMEXT_ENABLE_TEXTPARSERS
 //#define SMEXT_ENABLE_USERMSGS
 //#define SMEXT_ENABLE_TRANSLATOR
-
+//#define SMEXT_ENABLE_NINVOKE
+#define SMEXT_ENABLE_ROOTCONSOLEMENU
 
 #endif // _INCLUDE_SOURCEMOD_EXTENSION_CONFIG_H_
