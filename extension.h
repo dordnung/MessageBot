@@ -9,7 +9,7 @@
  * 
  * Originally provided for CallAdmin by Popoklopsi and Impact
  * 
- * Copyright (C) 2013 David <popoklopsi> Ordnung, Impact
+ * Copyright (C) 2014 David <popoklopsi> Ordnung, Impact
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,8 +34,7 @@
 // Max recipients
 #define MAX_RECIPIENTS 300
 
-
-// Max recipients
+// Max message length
 #define MAX_MESSAGE_LENGTH 1024
 
 
@@ -48,13 +47,12 @@
 
 
 
-// Sleeping
+// Sleeping for Linux and Windows
 #if defined _WIN32
 	#define Sleeping(x) Sleep(x);
 #elif defined _LINUX
 	#define Sleeping(x) usleep(x*1000);
 #endif
-
 
 
 
@@ -81,7 +79,6 @@ public:
 	virtual bool SDK_OnLoad(char *error, size_t maxlength, bool late);
 	virtual void SDK_OnUnload();
 };
-
 
 
 
@@ -137,6 +134,7 @@ public:
 	void RunThread(IThreadHandle *pThread);
 	void OnTerminate(IThreadHandle *pThread, bool cancel) {};
 	bool DoSetup();
+	void logout(bool clean);
 };
 
 
@@ -152,7 +150,6 @@ public:
 	EResult error;
 
 } PawnFuncThreadReturn;
-
 
 
 
