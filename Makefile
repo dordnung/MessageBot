@@ -37,7 +37,7 @@ CPP_OSX = clang
 ##########################
 
 INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I"$(OPENSTEAMSDK)/Open Steamworks" -I$(CURL)
-LINK += $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -m32 -lm -ldl
+LINK += $(CURL)/libcurl.a $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -m32 -lm -ldl
 
 CFLAGS += -std=c++0x -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
