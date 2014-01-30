@@ -17,11 +17,18 @@
 
 enum MessageBotResult
 {
-	RESULT_NO_ERROR = 0, 	  // Everything worked fine
-	RESULT_LOGIN_ERROR,   	  // Error while trying to login
-	RESULT_TIMEOUT_ERROR,     // Operation timed out
-	RESULT_RECIPIENTS_EMPTY,  // No recipients were setup prior to sending a message
-	RESULT_NO_RECEIVER,
+	RESULT_NO_ERROR = 0,        // Everything worked fine
+	RESULT_LOGIN_ERROR,         // Error while trying to login
+	RESULT_TIMEOUT_ERROR,       // Operation timed out
+	RESULT_RECIPIENTS_EMPTY,    // No recipients were setup prior to sending a message
+	RESULT_NO_RECEIVER,         // Couldn't send to any recipient
+}
+
+
+enum MessageBotSendMethod
+{
+	SEND_METHOD_STEAMWORKS = 0,    // Send through Steamworks API
+	SEND_METHOD_ONLINEAPI          // Send through Online API
 }
 
 
@@ -57,11 +64,24 @@ native MessageBot_SetLoginData(const String:steamUsername[], const String:steamP
 
 
 /**
+ * Sets the method how to send a message.
+ *
+ * @param method       Method to send message.
+
+ * @noreturn
+ */
+native MessageBot_SetSendMethod(MessageBotSendMethod:method);
+
+
+
+
+
+/**
  * Sends a message to all recipients.
  *
  * @param callback            Callback to be called when result is available.
  * @param message             Message to be sent.
- * @param showOnline 		  Show that bot is online?
+ * @param showOnline 		  Show that bot is online? (Only for steamworks method)
  * @noreturn
  */
 native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[], bool:showOnline=true);

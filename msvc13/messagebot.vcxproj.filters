@@ -16,6 +16,12 @@
     <Filter Include="SourceMod SDK">
       <UniqueIdentifier>{31958233-BB2D-4e41-A8F9-CE8A4684F436}</UniqueIdentifier>
     </Filter>
+    <Filter Include="BigInt">
+      <UniqueIdentifier>{9b1efbc8-4f20-4798-b8ac-1c27e2e95aea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Json">
+      <UniqueIdentifier>{ab30fb96-901b-44eb-835c-51606e44186d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\extension.cpp">
@@ -23,6 +29,42 @@
     </ClCompile>
     <ClCompile Include="..\sdk\smsdk_ext.cpp">
       <Filter>SourceMod SDK</Filter>
+    </ClCompile>
+    <ClCompile Include="..\osw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bigint\BigUnsigned.cc">
+      <Filter>BigInt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bigint\BigUnsignedInABase.cc">
+      <Filter>BigInt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bigint\BigInteger.cc">
+      <Filter>BigInt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bigint\BigIntegerAlgorithms.cc">
+      <Filter>BigInt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bigint\BigIntegerUtils.cc">
+      <Filter>BigInt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rsa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\json\json_reader.cpp">
+      <Filter>Json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\json\json_value.cpp">
+      <Filter>Json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\json\json_writer.cpp">
+      <Filter>Json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\webapi.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -38,5 +80,79 @@
     <ClInclude Include="..\sh_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\osw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\BigUnsigned.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\BigUnsignedInABase.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\NumberlikeArray.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\BigInteger.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\BigIntegerAlgorithms.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\BigIntegerLibrary.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bigint\BigIntegerUtils.hh">
+      <Filter>BigInt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rsa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json_tool.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\autolink.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\config.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\features.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\forwards.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\json.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\reader.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\value.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json\writer.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json_batchallocator.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\webapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\json\json_valueiterator.inl">
+      <Filter>Json</Filter>
+    </None>
+    <None Include="..\json\json_internalarray.inl">
+      <Filter>Json</Filter>
+    </None>
+    <None Include="..\json\json_internalmap.inl">
+      <Filter>Json</Filter>
+    </None>
   </ItemGroup>
 </Project>

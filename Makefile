@@ -7,6 +7,8 @@
 
 SMSDK = ../sourcemod-central
 OPENSTEAMSDK = ../opensteamworks
+CURL = ../curl
+OPENSSL = ../openssl
 
 #####################################
 ### EDIT BELOW FOR OTHER PROJECTS ###
@@ -17,7 +19,7 @@ PROJECT = messagebot
 #Uncomment for Metamod: Source enabled extension
 #USEMETA = true
 
-OBJECTS = sdk/smsdk_ext.cpp extension.cpp
+OBJECTS = sdk/smsdk_ext.cpp extension.cpp osw.cpp base64.cpp rsa.cpp json/json_reader.cpp json/json_value.cpp json/json_writer.cpp bigint/BigInteger.cc bigint/BigIntegerAlgorithms.cc bigint/BigIntegerUtils.cc bigint/BigUnsigned.cc bigint/BigUnsignedInABase.cc
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
@@ -34,13 +36,13 @@ CPP_OSX = clang
 ### SDK CONFIGURATIONS ###
 ##########################
 
-INCLUDE += -I. -I.. -Isdk -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I$(OPENSTEAMSDK)/include
-LINK += $(OPENSTEAMSDK)/libs/steamclient.a -m32 -lm -ldl
+INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I"$(OPENSTEAMSDK)/Open Steamworks" -I$(CURL)
+LINK += $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -m32 -lm -ldl
 
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
-	-Wno-overloaded-virtual -Wno-switch -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
-CPPFLAGS += -Wno-non-virtual-dtor -fno-exceptions -fno-rtti
+	-Wno-overloaded-virtual -Wno-switch -Wno-deprecated -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
+CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti
 
 ################################################
 ### DO NOT EDIT BELOW HERE FOR MOST PROJECTS ###
@@ -110,6 +112,8 @@ $(BIN_DIR)/%.o: %.cpp
 
 all: check
 	mkdir -p $(BIN_DIR)/sdk
+	mkdir -p $(BIN_DIR)/json
+	mkdir -p $(BIN_DIR)/bigint
 	$(MAKE) -f $(MAKEFILE_NAME) extension
 
 check:
@@ -125,5 +129,7 @@ default: all
 clean: check
 	rm -rf $(BIN_DIR)/*.o
 	rm -rf $(BIN_DIR)/sdk/*.o
+	rm -rf $(BIN_DIR)/json/*.o
+	rm -rf $(BIN_DIR)/bigint/*.o
 	rm -rf $(BIN_DIR)/$(BINARY)
 
