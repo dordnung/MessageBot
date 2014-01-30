@@ -37,6 +37,7 @@
 
 
 #include <string.h>
+#include <stdarg.h>
 #include "rsa.h"
 #include "extension.h"
 #include "json/json.h"

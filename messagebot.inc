@@ -81,7 +81,7 @@ native MessageBot_SetSendMethod(MessageBotSendMethod:method);
  *
  * @param callback            Callback to be called when result is available.
  * @param message             Message to be sent.
- * @param showOnline 		  Show that bot is online? (Only for steamworks method)
+ * @param showOnline 		  Show that bot is online?
  * @noreturn
  */
 native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[], bool:showOnline=true);
