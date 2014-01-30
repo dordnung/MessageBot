@@ -19,7 +19,7 @@ PROJECT = messagebot
 #Uncomment for Metamod: Source enabled extension
 #USEMETA = true
 
-OBJECTS = sdk/smsdk_ext.cpp extension.cpp osw.cpp base64.cpp rsa.cpp json/json_reader.cpp json/json_value.cpp json/json_writer.cpp bigint/BigInteger.cc bigint/BigIntegerAlgorithms.cc bigint/BigIntegerUtils.cc bigint/BigUnsigned.cc bigint/BigUnsignedInABase.cc
+OBJECTS = sdk/smsdk_ext.cpp extension.cpp osw.cpp base64.cpp rsa.cpp webapi.cpp json/json_reader.cpp json/json_value.cpp json/json_writer.cpp bigint/BigInteger.cc bigint/BigIntegerAlgorithms.cc bigint/BigIntegerUtils.cc bigint/BigUnsigned.cc bigint/BigUnsignedInABase.cc
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
@@ -39,7 +39,7 @@ CPP_OSX = clang
 INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I"$(OPENSTEAMSDK)/Open Steamworks" -I$(CURL)
 LINK += $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -m32 -lm -ldl
 
-CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
+CFLAGS += -std=c++0x -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
 	-Wno-overloaded-virtual -Wno-switch -Wno-deprecated -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
 CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti
