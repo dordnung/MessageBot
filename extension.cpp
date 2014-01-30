@@ -27,24 +27,19 @@
 
 
 
-// Includes
-#include <sstream>
-
+// Include
 #include "extension.h"
-#include "sh_vector.h"
-
-
+#include "osw.h"
+#include "webapi.h"
 
 // Are we loaded?
 bool extensionLoaded;
 bool volatile m_locked; 
 
+
 // For Forward
 CVector<PawnFuncThreadReturn *> vecPawnReturn;
 IThreadHandle *threading;
-
-// Recipients
-CSteamID *recipients[MAX_RECIPIENTS];
 
 
 // User Data
@@ -52,15 +47,10 @@ char username[128];
 char password[128];
 
 
-// Steam stuff
-HSteamPipe steamPipe;
-HSteamUser steamUser;
-IClientFriends *clientFriends;
-IClientEngine *clientEngine;
-IClientUser *clientUser;
 
-GetCallbackFn GetCallback = 0;
-FreeLastCallbackFn FreeLastCallback = 0;
+// Send Method
+SendMethod sendMethod = SEND_METHOD_ONLINEAPI;
+
 
 // Queue start
 Queue *queueStart = NULL;
@@ -78,6 +68,7 @@ SMEXT_LINK(&messageBot);
 // Natives
 sp_nativeinfo_t messagebot_natives[] = 
 {
+	{"MessageBot_SetSendMethod", MessageBot_SetSendMethod},
 	{"MessageBot_SendMessage", MessageBot_SendMessage},
 	{"MessageBot_SetLoginData", MessageBot_SetLoginData},
 	{"MessageBot_AddRecipient", MessageBot_AddRecipient},
@@ -103,10 +94,13 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	sharesys->RegisterLibrary(myself, "messagebot");
 
 
+	oswClass = new OSWClass();
+	webClass = new WebAPIClass();
+
+
 	// GameFrame
 	smutils->AddGameFrameHook(&OnGameFrameHit);
 	m_locked = false;
-
 
 
 	// Loaded
@@ -144,12 +138,7 @@ void MessageBot::SDK_OnUnload()
 
 	
 	// Disconnect here
-	if (clientEngine && steamPipe)
-	{
-		// Release
-		clientEngine->ReleaseUser(steamPipe, steamUser);
-		clientEngine->BReleaseSteamPipe(steamPipe);
-	}
+	oswClass->LogoutOSW(true);
 
 
 	// Delete all messages
@@ -172,8 +161,40 @@ void MessageBot::SDK_OnUnload()
 	}
 
 
-	// Remove Frame hook and mutex
+	// Remove Frame hook
 	smutils->RemoveGameFrameHook(&OnGameFrameHit);
+
+
+	// Delete oswclass
+	delete oswClass;
+	delete webClass;
+}
+
+
+
+
+
+// Prepare the Forward
+void MessageBot::prepareForward(IPluginFunction *func, CallBackResult result, int errorS)
+{
+	// Create return
+	PawnFuncThreadReturn *pReturn = new PawnFuncThreadReturn;
+
+
+
+	// Fill in
+	pReturn->pFunc = func;
+	pReturn->result = result;
+	pReturn->errorState = errorS;
+
+
+
+	// Push to Vector
+	m_locked = true;
+
+	vecPawnReturn.push_back(pReturn);
+
+	m_locked = false;
 }
 
 
@@ -207,7 +228,7 @@ void OnGameFrameHit(bool simulating)
 		if (pFunc != NULL && pFunc->IsRunnable())
 		{
 			pFunc->PushCell(pReturn->result);
-			pFunc->PushCell(pReturn->error);
+			pFunc->PushCell(pReturn->errorState);
 			pFunc->Execute(NULL);
 		}
 		
@@ -231,19 +252,6 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 	// Infinite Loop while loaded
 	while (extensionLoaded)
 	{		
-		// steam connection setup
-		if (!setup)
-		{
-			setup = DoSetup();
-			
-			if (!setup)
-			{
-				smutils->LogError(myself, "Failed to finish Setup...");
-
-				continue;
-			}
-		}
-
 		// Extension loaded?
 		if (extensionLoaded)
 		{
@@ -255,357 +263,50 @@ void watchThread::RunThread(IThreadHandle *pHandle)
 		// Item in list?
 		if (extensionLoaded && queueStart != NULL)
 		{
-			// Login
-			clientUser->LogOnWithPassword(false, queueStart->getUsername(), queueStart->getPassword());
-
-
-			// Finished or Error?
-			bool finished = false;
-			bool foundError = false;
-
-
-			// Last Callback
-			CallbackMsg_t callBack;
-
-			// Timeout
-			time_t timeout = time(0) + 10;
-
-
-			// Not longer as 10 seconds
-			while(time(0) < timeout && extensionLoaded)
+			// steam connection setup
+			if (oswClass->getSetup() == 0 && sendMethod == SEND_METHOD_STEAMWORKS)
 			{
-				// Get last callbacks
-				while (GetCallback(steamPipe, &callBack) && extensionLoaded)
+				if (oswClass->SetupOSW() == 2)
 				{
-					// Logged In?
-					if (callBack.m_iCallback == SteamServersConnected_t::k_iCallback && extensionLoaded)
-					{
-						bool foundData = false;
-						bool foundUser = false;
-						char *message = queueStart->getMessage();
+					smutils->LogError(myself, "Failed to connect to steam libraries... Switching to Online Method");
 
-
-						// Logged in!
-						clientUser->SetSelfAsPrimaryChatDestination();
-						clientFriends->SetPersonaState(queueStart->getOnline());
-						
-
-						// Wait until online
-						EPersonaState personaState = clientFriends->GetPersonaState();
-
-						while (personaState != queueStart->getOnline())
-						{
-							Sleeping(10);
-							personaState = clientFriends->GetPersonaState();
-						}
-
-						Sleeping(50);
-
-						// Add all Recipients and send message
-						for (int i = 0; i < MAX_RECIPIENTS; i++)
-						{
-							// Valid Steamid?
-							if (recipients[i] != NULL && clientFriends != NULL)
-							{
-								// We found one
-								foundUser = true;
-
-
-								// Add Recipients
-								EFriendRelationship state = clientFriends->GetFriendRelationship(*recipients[i]);
-
-								if (clientFriends->GetFriendRelationship(*recipients[i]) != k_EFriendRelationshipFriend)
-								{
-									if (state != k_EFriendRelationshipRequestRecipient)
-									{
-										smutils->LogError(myself, "Recipient %s is neither a friend nor he send an invite to the Bot!", *recipients[i]->Render());
-
-										continue;
-									}
-
-
-									// Add the friend
-									clientFriends->AddFriend(*recipients[i]);
-
-
-									// Wait until added
-									state = clientFriends->GetFriendRelationship(*recipients[i]);
-
-									while (state == k_EFriendRelationshipRequestRecipient)
-									{
-										Sleeping(10);
-										state = clientFriends->GetFriendRelationship(*recipients[i]);
-									}
-								}
-								
-
-								int messageCountOld = clientFriends->GetChatMessagesCount(*recipients[i]);
-	
-
-								// Send him the message
-								if (extensionLoaded)
-								{
-									if (clientFriends->SendMsgToFriend(*recipients[i], k_EChatEntryTypeChatMsg, message, strlen(message + 1)))
-									{
-										foundData = true;
-									}
-									else if (clientFriends->ReplyToFriendMessage(*recipients[i], message))
-									{
-										// We found one
-										foundData = true;
-									}
-								}
-
-								if (foundData)
-								{
-									int messageCountNew = clientFriends->GetChatMessagesCount(*recipients[i]);
-
-									while (messageCountOld >= messageCountNew)
-									{
-										Sleeping(10);
-										messageCountNew = clientFriends->GetChatMessagesCount(*recipients[i]);
-									}
-								}
-							}
-
-							Sleeping(10);
-						}
-
-
-						// Array is empty?
-						if (!foundUser)
-						{
-							// Array is Empty !
-							prepareForward(queueStart->getCallback(), ARRAY_EMPTY, k_EResultOK);
-
-							// Found Error
-							foundError = true;
-						}
-
-						// no receiver?
-						else if (!foundData)
-						{
-							prepareForward(queueStart->getCallback(), NO_RECEIVER, k_EResultOK);
-
-							// Found Error
-							foundError = true;
-						}
-						else
-						{
-							// Success :)
-							prepareForward(queueStart->getCallback(), SUCCESS, k_EResultOK);
-
-							finished = true;
-						}
-					}
-
-
-					// Error on connect
-					else if (callBack.m_iCallback == SteamServerConnectFailure_t::k_iCallback && extensionLoaded)
-					{
-						// Get Error Code
-						SteamServerConnectFailure_t *error = (SteamServerConnectFailure_t *)callBack.m_pubParam;
-
-
-						// We have a Login Error
-						prepareForward(queueStart->getCallback(), LOGIN_ERROR, (EResult)error->m_eResult);
-
-
-						// Found Error
-						foundError = true;
-					}
-
-
-					// We found a error or finished -> stop here
-					if (foundError || finished || !extensionLoaded)
-					{
-						// Free it
-						FreeLastCallback(steamPipe);
-						
-						break;
-					}
-					
-					// Free it
-					FreeLastCallback(steamPipe);
+					sendMethod = SEND_METHOD_ONLINEAPI;
 				}
-
-				
-				// We found a error -> stop here
-				if (foundError || finished || !extensionLoaded)
-				{
-					break;
-				}
-
-				Sleeping(100);
 			}
 
 
-			// Timeout
-			if (!foundError && !finished)
+
+			int errState = 0;
+
+			if (oswClass->getSetup() == 1 && sendMethod == SEND_METHOD_STEAMWORKS)
 			{
-				prepareForward(queueStart->getCallback(), TIMEOUT_ERROR, k_EResultOK);
+				// Send Message
+				CallBackResult result = oswClass->SendMessageOSW(queueStart->getUsername(), queueStart->getPassword(), queueStart->getMessage(), queueStart->getOnline(), errState);
+
+
+				// got a valid result?
+				messageBot.prepareForward(queueStart->getCallback(), result, errState);
+
+				queueStart->remove();
+
+				continue;
 			}
 
 
-			// Remove last
+			// Send Message via Webapi
+			CallBackResult result = webClass->SendMessageWebAPI(queueStart->getUsername(), queueStart->getPassword(), queueStart->getMessage(), queueStart->getOnline(), errState);
+
+
+			messageBot.prepareForward(queueStart->getCallback(), result, errState);
+
 			queueStart->remove();
-
-			
-			// Extension loaded?
-			if (extensionLoaded)
-			{
-				Sleeping(100);
-
-				// Logout
-				logout(false);
-
-				Sleeping(20);
-			}
 		}
 	}
 }
 
 
 
-// Setup steam connection
-bool watchThread::DoSetup()
-{
-	// Load DLL or SO
-	#if defined _WIN32
-		DynamicLibrary lib("steamclient.dll");
-	#elif defined _LINUX
-		DynamicLibrary lib("steamclient.so");
-	#endif
 
-
-	// is Loaded?
-	if (!lib.IsLoaded())
-	{
-		g_pSM->LogError(myself, "Unable to load steam client engine.");
-
-		return false;
-	}
-
-
-	// Factory
-	CreateInterfaceFn factory = reinterpret_cast<CreateInterfaceFn>(lib.GetSymbol("CreateInterface"));
-
-	// Get Factory
-	if (!factory)
-	{
-		g_pSM->LogError(myself, "Unable to load steamclient factory.");
-
-		return false;
-	}
-
-
-	// Callback
-	GetCallback = reinterpret_cast<GetCallbackFn>(lib.GetSymbol("Steam_BGetCallback"));
-
-	if (!GetCallback)
-	{
-		g_pSM->LogError(myself, "Unable to load Steam callback.");
-
-		return false;
-	}
-
-
-	FreeLastCallback = reinterpret_cast<FreeLastCallbackFn>(lib.GetSymbol("Steam_FreeLastCallback"));
-
-	if (!FreeLastCallback)
-	{
-		g_pSM->LogError(myself, "Unable to load Steam free callback.");
-
-		return false;
-	}
-
-
-	// Get Steam Engine
-	clientEngine = reinterpret_cast<IClientEngine*>(factory(CLIENTENGINE_INTERFACE_VERSION, NULL));
-
-	if (!clientEngine)
-	{
-		g_pSM->LogError(myself, "Unable to get the client engine.");
-
-		return false;
-	}
-
-
-
-	// Get User
-	steamUser = clientEngine->CreateLocalUser(&steamPipe, k_EAccountTypeIndividual);
-
-	if (!steamUser || !steamPipe)
-	{
-		g_pSM->LogError(myself, "Unable to create the local user.");
-
-		logout(true);
-
-		return false;
-	}
-
-
-
-	// Get Client User
-	clientUser = reinterpret_cast<IClientUser*>(clientEngine->GetIClientUser(steamUser, steamPipe, CLIENTUSER_INTERFACE_VERSION));
-
-	if (!clientUser)
-	{
-		g_pSM->LogError(myself, "Unable to get the client user interface.");
-
-		logout(true);
-
-		return false;
-	}
-
-
-
-	// Get Friends
-	clientFriends = reinterpret_cast<IClientFriends*>((IClientFriends *)clientEngine->GetIClientFriends(steamUser, steamPipe, CLIENTFRIENDS_INTERFACE_VERSION));
-
-	if (!clientFriends)
-	{
-		g_pSM->LogError(myself, "Unable to get the client friends interface.");
-
-		logout(true);
-
-		return false;
-	}
-
-
-	return true;
-}
-
-
-
-
-// Logout and clean up if necessary
-void watchThread::logout(bool clean)
-{
-	// Logout
-	if (clientUser)
-	{
-		clientUser->LogOff();
-
-		ELogonState state = clientUser->GetLogonState();
-
-		while (state != k_ELogonStateNotLoggedOn)
-		{
-			Sleeping(50);
-			state = clientUser->GetLogonState();
-		}
-	}
-
-	if (clean && steamPipe)
-	{
-		if (steamUser)
-		{
-			clientEngine->ReleaseUser(steamPipe, steamUser);
-		}
-
-		clientEngine->BReleaseSteamPipe(steamPipe);
-	}
-}
 
 
 
@@ -617,9 +318,11 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 	// callback
 	IPluginFunction *callback;
 
+
 	// Message
 	char message[MAX_MESSAGE_LENGTH];
 	char *message_cpy;
+
 
 	// Get Data
 	callback = pContext->GetFunctionById(params[1]);
@@ -645,7 +348,18 @@ cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params)
 		}
 	}
 	
-	return 0;
+	return 1;
+}
+
+
+
+
+// Set the send method
+cell_t MessageBot_SetSendMethod(IPluginContext *pContext, const cell_t *params)
+{
+	sendMethod = (SendMethod)params[1];
+
+	return 1;
 }
 
 
@@ -658,15 +372,17 @@ cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params)
 	char *username_cpy;
 	char *password_cpy;
 
+
 	// Get global username and password
 	pContext->LocalToString(params[1], &username_cpy);
 	pContext->LocalToString(params[2], &password_cpy);
+
 
 	// Copy Strings
 	strcpy(username, username_cpy);
 	strcpy(password, password_cpy);
 
-	return 0;
+	return 1;
 }
 
 
@@ -725,7 +441,7 @@ cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params)
 			else
 			{
 				// Convert from Steamid
-				recipients[i] = steamIDtoCSteamID(steamid);
+				recipients[i] = oswClass->steamIDtoCSteamID(steamid);
 			}
 
 
@@ -880,11 +596,11 @@ Queue::Queue(IPluginFunction *func, char *name, char *pw, char *message, int onl
 	// Show online?
 	if (online == 0)
 	{
-		state = k_EPersonaStateOffline;
+		showLogin = false;
 	}
 	else
 	{
-		state = k_EPersonaStateOnline;
+		showLogin = true;
 	}
 
 	callback = func; 
@@ -916,9 +632,9 @@ char *Queue::getMessage() const
 
 
 
-EPersonaState Queue::getOnline() const
+bool Queue::getOnline() const
 {
-	return state;
+	return showLogin;
 }
 
 IPluginFunction *Queue::getCallback() const
@@ -933,7 +649,7 @@ IPluginFunction *Queue::getCallback() const
 // Add new item at the end
 void Queue::add(Queue *newQueue)
 {
-	// if next -> recursiv
+	// if next -> recursive
 	if (next != NULL)
 	{
 		next->add(newQueue);
@@ -944,6 +660,7 @@ void Queue::add(Queue *newQueue)
 		next = newQueue;
 	}
 }
+
 
 
 // Remove first item on the queue
@@ -962,90 +679,4 @@ void Queue::remove()
 		// Set new queue start
 		queueStart = buffer;
 	}
-}
-
-
-
-
-
-
-// Prepare the Forward
-void prepareForward(IPluginFunction *func, CallBackResult result, EResult error)
-{
-	// Create return
-	PawnFuncThreadReturn *pReturn = new PawnFuncThreadReturn;
-
-
-
-	// Fill in
-	pReturn->pFunc = func;
-	pReturn->result = result;
-	pReturn->error = error;
-
-
-
-	// Push to Vector
-	m_locked = true;
-
-	vecPawnReturn.push_back(pReturn);
-
-	m_locked = false;
-}
-
-
-
-
-
-// Converts a steamid to a CSteamID
-CSteamID *steamIDtoCSteamID (char* steamid)
-{
-	// To small
-	if (strlen(steamid) < 11)
-	{
-		return NULL;
-	}
-
-
-	int server = 0;
-	int authID = 0;
-
-	// Strip the steamid
-	char *strip = strtok(steamid, ":");
-
-
-
-	while (strip)
-	{
-		strip = strtok(NULL, ":");
-
-		char *strip2 = strtok(NULL, ":");
-
-		// Read server and authID
-		if (strip2)
-		{
-			server = atoi(strip);
-			authID = atoi(strip2);
-		}
-	}
-
-
-
-	// Wrong Format
-	if (authID == 0)
-	{
-		return NULL;
-	}
-
-
-	uint64 uintID = (uint64)authID * 2;
-
-	// Convert to a uint64
-	#if defined _WIN32
-		uintID += 76561197960265728 + server;
-	#elif defined _LINUX
-		uintID += 76561197960265728LLU + server;
-	#endif
-
-	// Return it
-	return new CSteamID(uintID);
 }

@@ -38,12 +38,14 @@
 #define MAX_MESSAGE_LENGTH 1024
 
 
+
 // Includes
-#include <Steamworks.h>
 #include <stdlib.h>
+#include <sstream>
+#include <Steamworks.h>
 
 #include "smsdk_ext.h"
-
+#include "sh_vector.h"
 
 
 
@@ -70,6 +72,16 @@ enum CallBackResult
 
 
 
+// enum for SendMethod
+enum SendMethod
+{
+	SEND_METHOD_STEAMWORKS = 0,
+	SEND_METHOD_ONLINEAPI,
+};
+
+
+
+
 
 
 // Extension class
@@ -78,6 +90,10 @@ class MessageBot : public SDKExtension
 public:
 	virtual bool SDK_OnLoad(char *error, size_t maxlength, bool late);
 	virtual void SDK_OnUnload();
+
+public:
+	// Prepare Forward
+	void prepareForward(IPluginFunction *func, CallBackResult result, int errorS);
 };
 
 
@@ -89,7 +105,7 @@ class Queue
 {
 private:
 	IPluginFunction *callback;
-	EPersonaState state;
+	bool showLogin;
 
 	char user[128];
 	char pass[128];
@@ -104,11 +120,11 @@ public:
 	// get methods
 	char *getUsername() const;
 	char *getPassword() const;
-	char *getMessage()const ;
+	char *getMessage() const;
 
-	Queue *getNext() const ;
+	Queue *getNext() const;
 	IPluginFunction *getCallback() const;
-	EPersonaState getOnline() const;
+	bool getOnline() const;
 
 	
 	// Remove last item
@@ -125,16 +141,11 @@ public:
 // Thread wachting for new messages
 class watchThread : public IThread
 {
-private:
-	bool setup;
-
 public:
-	watchThread() : IThread() {setup = false;}
+	watchThread() : IThread() {};
 
 	void RunThread(IThreadHandle *pThread);
 	void OnTerminate(IThreadHandle *pThread, bool cancel) {};
-	bool DoSetup();
-	void logout(bool clean);
 };
 
 
@@ -147,30 +158,25 @@ typedef struct
 public:
 	IPluginFunction *pFunc;
 	CallBackResult result;
-	EResult error;
+	int errorState;
 
 } PawnFuncThreadReturn;
 
 
 
 
+// OSW Class
+extern CSteamID *recipients[MAX_RECIPIENTS];
+extern SendMethod sendMethod;
 
 
-// Steam Methods
-typedef bool (*GetCallbackFn)(HSteamPipe hSteamPipe, CallbackMsg_t *pCallbackMsg);
-typedef void (*FreeLastCallbackFn)(HSteamPipe hSteamPipe);
+// Are we loaded?
+extern bool extensionLoaded;
 
-
-
-// OnGameFrame
-void OnGameFrameHit(bool simulating);
-
-
-// Prepare Forward
-void prepareForward(IPluginFunction *func, CallBackResult result, EResult error);
 
 
 // Natives
+cell_t MessageBot_SetSendMethod(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params);
@@ -179,9 +185,8 @@ cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params);
 
 
-// Steamid to CSteamID
-CSteamID *steamIDtoCSteamID (char *steamid);
 
+void OnGameFrameHit(bool simulating);
 
 
 #endif // _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
