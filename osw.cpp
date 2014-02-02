@@ -108,6 +108,8 @@ int OSWClass::SetupOSW()
 
 			SET_SETUP(2);
 		}
+
+		smutils->LogMessage(myself, "Attention: Found only new experimental Interface version. If your server will crash, please use the web API method!");
 	}
 
 
