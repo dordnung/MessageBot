@@ -35,7 +35,7 @@
 #define MAX_RECIPIENTS 300
 
 // Max message length
-#define MAX_MESSAGE_LENGTH 1024
+#define MAX_MESSAGE_LENGTH 4096
 
 
 
