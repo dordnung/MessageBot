@@ -382,7 +382,7 @@ void WebAPIClass::acceptFriend(std::string friendSteam, std::string &sessionID)
 	{
 		cookie = cookie + std::string(";sessionid=") + sessionID;
 
-		CurlReturn pReturn2 = getPage((std::string("https://steamcommunity.com/profiles/") + std::string(steamid) + std::string("/home_process")).c_str(), cookie.c_str(), "json=1&xml=1&action=approvePending&itype=friend&perform=accept&sessionID=%s&id=%s", sessionID, urlencode(friendSteam).c_str());
+		getPage((std::string("https://steamcommunity.com/profiles/") + std::string(steamid) + std::string("/home_process")).c_str(), cookie.c_str(), "json=1&xml=1&action=approvePending&itype=friend&perform=accept&sessionID=%s&id=%s", sessionID.c_str(), urlencode(friendSteam).c_str());
 	}
 }
 
@@ -582,6 +582,7 @@ CurlReturn WebAPIClass::getPage(const char* url, const char* cookies, char* post
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, pReturn);
 		curl_easy_setopt(curl, CURLOPT_HEADERDATA, pReturn);
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
 
 		if (strlen(fmtString) > 0)
