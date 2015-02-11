@@ -8,10 +8,6 @@
 SMSDK = ../sourcemod-central
 OPENSTEAMSDK = ../opensteamworks
 
-# We using only a minimized version of libcurl with ssl support
-CURL = ../curl
-LIBPATH = /usr/lib/i386-linux-gnu
-
 #####################################
 ### EDIT BELOW FOR OTHER PROJECTS ###
 #####################################
@@ -38,10 +34,10 @@ CPP_OSX = clang
 ### SDK CONFIGURATIONS ###
 ##########################
 
-INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I"$(OPENSTEAMSDK)/Open Steamworks" -I$(CURL)
+INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I"$(OPENSTEAMSDK)/Open Steamworks"
 
 # We using only a minimized version of libcurl with ssl support. For a better libcurl you have to compile against more static libs.
-LINK += $(CURL)/libcurl.a $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a $(LIBPATH)/libssl.a $(LIBPATH)/libcrypto.a $(LIBPATH)/libz.a -lrt -m32 -lm -ldl -lstdc++
+LINK += -lrt -m32 -lm -ldl -lstdc++ $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a -Wl,-Bstatic -lcurl -lssl -lcrypto -lz -Wl,-Bdynamic
 
 CFLAGS += -std=c++0x -DPOSIX -DCURL_STATICLIB -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
