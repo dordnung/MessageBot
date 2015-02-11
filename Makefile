@@ -41,7 +41,7 @@ LINK += -lrt -m32 -lm -ldl -lstdc++ $(OPENSTEAMSDK)/Resources/Libs/Linux32/steam
 
 CFLAGS += -std=c++0x -DPOSIX -DCURL_STATICLIB -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
-	-Wno-overloaded-virtual -Wno-switch -Wno-deprecated -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
+	-Wno-overloaded-virtual -Wno-switch -Wno-deprecated -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
 CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti
 
 ################################################
