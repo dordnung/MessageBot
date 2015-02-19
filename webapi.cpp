@@ -703,7 +703,7 @@ std::string WebAPIClass::urlencode(std::string code)
 
 void WebAPIClass::debug(std::string message)
 {
-#if defined DEBUG_WEBAPI
+#if defined DEBUG_WEBAPI && DEBUG_WEBAPI == 1
 	smutils->LogMessage(myself, message.c_str());
 #endif
 }
