@@ -30,9 +30,11 @@
 #define _INCLUDE_WEBAPI_H_
 
 
+#define DEBUG_WEBAPI 1
 #define CLIENT_ID "DE45CD61"
 #define CLIENT_SCOPE "read_profile write_profile read_client write_client"
-#define USER_AGENT "Steam App / Android / 1.0.6 / 1328177"
+#define USER_AGENT_APP "Steam App / Android / 1.0.6 / 1328177"
+#define USER_AGENT_ANDROID "Mozilla/5.0 (Linux; U; Android; en-gb;) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"
 #define APP_ID "1328177"
 
 
@@ -130,7 +132,7 @@ private:
 
 
 	// Get a Page
-	CurlReturn getPage(const char* url, const char* cookies, char* post, ...);
+	CurlReturn getPage(const char* url, const char* useragent, const char* cookies, char* post, ...);
 
 	// Curl received
 	static size_t page_get(void *buffer, size_t size, size_t nmemb, void *stream);
@@ -141,6 +143,9 @@ private:
 
 	// Urlencode String
 	std::string urlencode(std::string code);
+
+	// Debug 
+	void debug(std::string message);
 };
 
 
