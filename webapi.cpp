@@ -42,13 +42,16 @@ bool WebAPIClass::LoginWebAPI()
 		return false;
 	}
 
-
-
+	// Notify steam that we need oauth
+	const char* sessionPage = (std::string("https://steamcommunity.com/mobilelogin?oauth_client_id=") + urlencode(CLIENT_ID) + std::string("&oauth_scope=") + urlencode(CLIENT_SCOPE)).c_str();
+	debug(sessionPage);
+	getPage(sessionPage, USER_AGENT_ANDROID, NULL, NULL);
+	
 	Json::Value root;
 	Json::Reader reader;
 
-	CurlReturn pReturn = getPage("https://steamcommunity.com/mobilelogin/getrsakey/", NULL, "username=%s", urlencode(username).c_str());
-
+	CurlReturn pReturn = getPage("https://steamcommunity.com/mobilelogin/getrsakey", USER_AGENT_ANDROID, NULL, "username=%s", urlencode(username).c_str());
+	debug(pReturn.pResultString);
 
 	if (strcmp(pReturn.curlError, "") != 0)
 	{
@@ -75,7 +78,7 @@ bool WebAPIClass::LoginWebAPI()
 	std::string mod = root.get("publickey_mod", "").asString();
 	std::string exp = root.get("publickey_exp", "").asString();
 	std::string timestamp = root.get("timestamp", "").asString();
-
+	debug(root.toStyledString());
 
 	if (mod.empty() || exp.empty() || timestamp.empty())
 	{
@@ -85,13 +88,11 @@ bool WebAPIClass::LoginWebAPI()
 	}
 
 
-
-
 	std::string encrypted = encrypt(mod.c_str(), exp.c_str(), password.c_str());
 
 
-	pReturn = getPage("https://steamcommunity.com/mobilelogin/dologin/", NULL, "username=%s&password=%s&emailauth=&captchagid=&captcha_text=&oauth_client_id=%s&oauth_scope=%s&emailsteamid=&remember_login=true&rsatimestamp=%s", urlencode(username).c_str(), urlencode(encrypted).c_str(), urlencode(CLIENT_ID).c_str(), urlencode(CLIENT_SCOPE).c_str(), urlencode(timestamp).c_str());
-
+	pReturn = getPage("https://steamcommunity.com/mobilelogin/dologin/", USER_AGENT_ANDROID, NULL, "username=%s&password=%s&loginfriendlyname=CallAdmin&emailauth=&captchagid=-1&remember_login=true&oauth_client_id=%s&oauth_scope=%s&emailsteamid=&rsatimestamp=%s", urlencode(username).c_str(), urlencode(encrypted).c_str(), urlencode(CLIENT_ID).c_str(), urlencode(CLIENT_SCOPE).c_str(), urlencode(timestamp).c_str());
+	debug(pReturn.pResultString);
 
 
 	if (strcmp(pReturn.curlError, "") != 0)
@@ -122,7 +123,7 @@ bool WebAPIClass::LoginWebAPI()
 		return false;
 	}
 
-
+	debug(root.toStyledString());
 
 	std::string auth = root.get("oauth", "").asString();
 
@@ -132,6 +133,7 @@ bool WebAPIClass::LoginWebAPI()
 
 		return false;
 	}
+
 
 	if (!reader.parse(auth, root))
 	{
@@ -166,8 +168,8 @@ bool WebAPIClass::LoginUMQID()
 	Json::Reader reader;
 	std::string error = "";
 
-	CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v0001", NULL, "access_token=%s", urlencode(oauth).c_str());
-
+	CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v0001", USER_AGENT_APP, NULL, "access_token=%s", urlencode(oauth).c_str());
+	debug(pReturn.pResultString);
 
 	if (strcmp(pReturn.curlError, "") != 0)
 	{
@@ -183,7 +185,7 @@ bool WebAPIClass::LoginUMQID()
 		return false;
 	}
 
-
+	debug(root.toStyledString());
 	error = root.get("error", "").asString();
 
 	if (error != "OK")
@@ -218,7 +220,8 @@ void WebAPIClass::LogoutWebAPI()
 	Json::Reader reader;
 	std::string error = "";
 
-	CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logoff/v0001", NULL, "access_token=%s&umqid=%s", urlencode(oauth).c_str(), urlencode(umqid).c_str());
+	CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logoff/v0001", USER_AGENT_APP, NULL, "access_token=%s&umqid=%s", urlencode(oauth).c_str(), urlencode(umqid).c_str());
+	debug(pReturn.pResultString);
 
 	umqid = "";
 
@@ -237,7 +240,7 @@ void WebAPIClass::LogoutWebAPI()
 		return;
 	}
 
-
+	debug(root.toStyledString());
 	error = root.get("error", "").asString();
 
 	if (error != "OK")
@@ -261,8 +264,8 @@ void WebAPIClass::getFriendList()
 	url = url + "?access_token=" + urlencode(oauth) + "&relationship=friend,requestrecipient";
 
 
-	CurlReturn pReturn = getPage(url.c_str(), NULL, "");
-
+	CurlReturn pReturn = getPage(url.c_str(), USER_AGENT_APP, NULL, "");
+	debug(pReturn.pResultString);
 
 	if (strcmp(pReturn.curlError, "") != 0)
 	{
@@ -278,6 +281,7 @@ void WebAPIClass::getFriendList()
 		return;
 	}
 
+	debug(root.toStyledString());
 	friendlist = root;
 }
 
@@ -314,8 +318,8 @@ void WebAPIClass::getUserStats()
 	}
 
 
-	CurlReturn pReturn = getPage(url.c_str(), NULL, "");
-
+	CurlReturn pReturn = getPage(url.c_str(), USER_AGENT_APP, NULL, "");
+	debug(pReturn.pResultString);
 
 	if (strcmp(pReturn.curlError, "") != 0)
 	{
@@ -331,6 +335,7 @@ void WebAPIClass::getUserStats()
 		return;
 	}
 
+	debug(root.toStyledString());
 	onlinestates = root;
 }
 
@@ -339,7 +344,7 @@ void WebAPIClass::getUserStats()
 
 void WebAPIClass::showOnline()
 {
-	CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/v0001", NULL, "access_token=%s&umqid=%s&message=%i", urlencode(oauth).c_str(), urlencode(umqid).c_str(), lastmessage);
+	CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/v0001", USER_AGENT_APP, NULL, "access_token=%s&umqid=%s&message=%i", urlencode(oauth).c_str(), urlencode(umqid).c_str(), lastmessage);
 
 
 	if (strcmp(pReturn.curlError, "") != 0)
@@ -362,7 +367,7 @@ void WebAPIClass::acceptFriend(std::string friendSteam, std::string &sessionID)
 
 	if (sessionID.empty())
 	{
-		CurlReturn pReturn = getPage("https://steamcommunity.com/mobilesettings/GetManifest/v0001", cookie.c_str(), "");
+		CurlReturn pReturn = getPage("https://steamcommunity.com/mobilesettings/GetManifest/v0001", USER_AGENT_APP, cookie.c_str(), "");
 
 		std::size_t found = pReturn.pResultHeader.find("sessionid=");
 
@@ -382,7 +387,7 @@ void WebAPIClass::acceptFriend(std::string friendSteam, std::string &sessionID)
 	{
 		cookie = cookie + std::string(";sessionid=") + sessionID;
 
-		getPage((std::string("https://steamcommunity.com/profiles/") + std::string(steamid) + std::string("/home_process")).c_str(), cookie.c_str(), "json=1&xml=1&action=approvePending&itype=friend&perform=accept&sessionID=%s&id=%s", sessionID.c_str(), urlencode(friendSteam).c_str());
+		getPage((std::string("https://steamcommunity.com/profiles/") + std::string(steamid) + std::string("/home_process")).c_str(), USER_AGENT_ANDROID, cookie.c_str(), "json=1&xml=1&action=approvePending&itype=friend&perform=accept&sessionID=%s&id=%s", sessionID.c_str(), urlencode(friendSteam).c_str());
 	}
 }
 
@@ -444,7 +449,7 @@ CallBackResult WebAPIClass::SendMessageWebAPI(char *user, char *pass, char *msg,
 			Json::Value userValue = onlinestates.get("players", "");
 
 
-			for (int j=0; friendValue.isValidIndex(j); j++)
+			for (int j = 0; friendValue.isValidIndex(j); j++)
 			{
 				std::string steam = friendValue[j].get("steamid", "").asString();
 				std::string relation = friendValue[j].get("relationship", "").asString();
@@ -457,7 +462,7 @@ CallBackResult WebAPIClass::SendMessageWebAPI(char *user, char *pass, char *msg,
 
 						break;
 					}
-					
+
 					for (int k = 0; userValue.isValidIndex(k); k++)
 					{
 						steam = userValue[k].get("steamid", "").asString();
@@ -474,7 +479,7 @@ CallBackResult WebAPIClass::SendMessageWebAPI(char *user, char *pass, char *msg,
 						}
 					}
 				}
-			
+
 				if (isUserValid)
 				{
 					break;
@@ -489,8 +494,8 @@ CallBackResult WebAPIClass::SendMessageWebAPI(char *user, char *pass, char *msg,
 			}
 
 
-			CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Message/v0001", NULL, "access_token=%s&text=%s&steamid_dst=%lld&umqid=%s&type=saytext", urlencode(oauth).c_str(), urlencode(msg).c_str(), recipients[i]->ConvertToUint64(), urlencode(umqid).c_str());
-
+			CurlReturn pReturn = getPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Message/v0001", USER_AGENT_APP, NULL, "access_token=%s&text=%s&steamid_dst=%lld&umqid=%s&type=saytext", urlencode(oauth).c_str(), urlencode(msg).c_str(), recipients[i]->ConvertToUint64(), urlencode(umqid).c_str());
+			debug(pReturn.pResultString);
 
 			if (strcmp(pReturn.curlError, "") != 0)
 			{
@@ -510,7 +515,7 @@ CallBackResult WebAPIClass::SendMessageWebAPI(char *user, char *pass, char *msg,
 				return LOGIN_ERROR;
 			}
 
-
+			debug(root.toStyledString());
 			errors = root.get("error", "").asString();
 
 			if (errors != "OK")
@@ -540,7 +545,7 @@ CallBackResult WebAPIClass::SendMessageWebAPI(char *user, char *pass, char *msg,
 
 
 
-CurlReturn WebAPIClass::getPage(const char* url, const char* cookies, char* post, ...)
+CurlReturn WebAPIClass::getPage(const char* url, const char* useragent, const char* cookies, char* post, ...)
 {
 	char fmtString[1024];
 
@@ -583,7 +588,7 @@ CurlReturn WebAPIClass::getPage(const char* url, const char* cookies, char* post
 		curl_easy_setopt(curl, CURLOPT_HEADERDATA, pReturn);
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
 
 		if (strlen(fmtString) > 0)
 		{
@@ -673,7 +678,6 @@ size_t WebAPIClass::header_get(void *buffer, size_t size, size_t nmemb, void *st
 
 
 
-
 std::string WebAPIClass::urlencode(std::string code)
 {
 	curl = curl_easy_init();
@@ -695,4 +699,11 @@ std::string WebAPIClass::urlencode(std::string code)
 
 
 	return ret;
+}
+
+void WebAPIClass::debug(std::string message)
+{
+#if defined DEBUG_WEBAPI
+	smutils->LogMessage(myself, message.c_str());
+#endif
 }
