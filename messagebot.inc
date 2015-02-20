@@ -132,6 +132,7 @@ enum MessageBotSendMethod
  */
 funcenum MessageBotReceiveCB
 {
+	public(MessageBotResult:result, error),
     public(MessageBotResult:result, MessageBotError:error)
 };
 
