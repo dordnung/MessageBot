@@ -53,7 +53,7 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
   6. Move the `libcurl_a.lib` and the `include` folder from `curl-7.40.0/builds/libcurl-XXX` to some folder
   7. Add a new system variable named `CURL` with the path to the .lib and the include folder
 
- **Get opensteamworks**
+- **Get opensteamworks**
   1. Download opensteamworks from `https://github.com/SteamRE/open-steamworks/archive/master.zip` and unzip
   2. Add a new system variable named `OPENSTEAMWORKS` with the path to opensteamworks
 
