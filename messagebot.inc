@@ -13,16 +13,14 @@
 #define MAX_MESSAGE_LENGTH 1024
 
 
-
-
 enum MessageBotResult
 {
-	RESULT_NO_ERROR = 0,        // Everything worked fine
-	RESULT_LOGIN_ERROR,         // Error while trying to login
-	RESULT_TIMEOUT_ERROR,       // Operation timed out
-	RESULT_RECIPIENTS_EMPTY,    // No recipients were setup prior to sending a message
-	RESULT_NO_RECEIVER,         // Couldn't send to any recipient
-}
+	RESULT_NO_ERROR = 0,                                    // Everything worked fine
+	RESULT_LOGIN_ERROR,                                     // Error while trying to login
+	RESULT_TIMEOUT_ERROR,                                   // Operation timed out
+	RESULT_RECIPIENTS_EMPTY,                                // No recipients were setup prior to sending a message
+	RESULT_NO_RECEIVER,                                     // Couldn't send to any recipient
+};
 
 enum MessageBotError
 {
@@ -111,16 +109,13 @@ enum MessageBotError
 	k_EResultRestrictedDevice = 82,                         //
 	k_EResultRegionLocked = 83,                             //
 	k_EResultRateLimitExceeded = 84,                        //
-}
-
+};
 
 enum MessageBotSendMethod
 {
-	SEND_METHOD_STEAMWORKS = 0,    // Send through Steamworks API
-	SEND_METHOD_ONLINEAPI          // Send through Online API
-}
-
-
+	SEND_METHOD_STEAMWORKS = 0,                             // Send through Steamworks API
+	SEND_METHOD_ONLINEAPI                                   // Send through Online API
+};
 
 
 /**
@@ -128,16 +123,12 @@ enum MessageBotSendMethod
  *
  * @param result    Result code.
  * @param error     Error code.
- * @noreturn
  */
-funcenum MessageBotReceiveCB
+typeset MessageBotReceiveCB
 {
-	public(MessageBotResult:result, error),
-    public(MessageBotResult:result, MessageBotError:error)
+	function void (MessageBotResult result, int error);
+	function void (MessageBotResult result, MessageBotError error);
 };
-
-
-
 
 
 /**
@@ -147,37 +138,25 @@ funcenum MessageBotReceiveCB
  * @param steamPassword       Steam password.
  * @noreturn
  */
-native MessageBot_SetLoginData(const String:steamUsername[], const String:steamPassword[]);
-
-
-
-
+native void MessageBot_SetLoginData(const char[] steamUsername, const char[] steamPassword);
 
 /**
  * Sets the method how to send a message.
  *
- * @param method       Method to send message.
-
+ * @param method              Method to send message.
  * @noreturn
  */
-native MessageBot_SetSendMethod(MessageBotSendMethod:method);
-
-
-
-
+native void MessageBot_SetSendMethod(MessageBotSendMethod method);
 
 /**
  * Sends a message to all recipients.
  *
  * @param callback            Callback to be called when result is available.
  * @param message             Message to be sent.
- * @param showOnline 		  Show that bot is online?
+ * @param showOnline          Show that bot is online?
  * @noreturn
  */
-native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message[], bool:showOnline=true);
-
-
-
+native void MessageBot_SendMessage(MessageBotReceiveCB callback, const char[] message, bool showOnline=true);
 
 /**
  * Add an auth to the list of recipients.
@@ -185,10 +164,7 @@ native MessageBot_SendMessage(MessageBotReceiveCB:callback, const String:message
  * @param auth               Auth/CommunityID of the recipient.
  * @return                   True if auth didn't exist and was added to the list, false otherwise.
  */
-native bool:MessageBot_AddRecipient(const String:auth[]);
-
-
-
+native bool MessageBot_AddRecipient(const char[] auth);
 
 /**
  * Remove an auth from the list of recipients.
@@ -196,11 +172,7 @@ native bool:MessageBot_AddRecipient(const String:auth[]);
  * @param auth               Auth/CommunityID of the recipient.
  * @return                   True if auth existed and was removed from the list, false otherwise.
  */
-native bool:MessageBot_RemoveRecipient(const String:auth[]);
-
-
-
-
+native bool MessageBot_RemoveRecipient(const char[] auth);
 
 /**
  * Returns whether the auth is on the recipients list.
@@ -208,26 +180,18 @@ native bool:MessageBot_RemoveRecipient(const String:auth[]);
  * @param auth               Auth/CommunityID of the recipient.
  * @return                   True if auth is a recipient, false otherwise.
  */
-native bool:MessageBot_IsRecipient(const String:auth[]);
-
-
-
-
+native bool MessageBot_IsRecipient(const char[] auth);
 
 /**
  * Clear the list of recipients.
  *
  * @noreturn
  */
-native MessageBot_ClearRecipients();
-
-
-
-
+native void MessageBot_ClearRecipients();
 
 
 /** Do Not Edit Below This Line **/
-public Extension:__ext_messagebot =
+public Extension __ext_messagebot =
 {
 	name = "messagebot",
 	file = "messagebot.ext",
@@ -246,7 +210,7 @@ public Extension:__ext_messagebot =
 };
 
 #if !defined REQUIRE_EXTENSIONS
-	public __ext_messagebot_SetNTVOptional()
+	public void __ext_messagebot_SetNTVOptional()
 	{
 		MarkNativeAsOptional("MessageBot_SetLoginData");
 		MarkNativeAsOptional("MessageBot_SendMessage");
