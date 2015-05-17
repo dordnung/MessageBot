@@ -30,7 +30,7 @@
 #define _INCLUDE_WEBAPI_H_
 
 
-#define DEBUG_WEBAPI 0
+#define DEBUG_WEBAPI 1
 #define CLIENT_ID "DE45CD61"
 #define CLIENT_SCOPE "read_profile write_profile read_client write_client"
 #define USER_AGENT_APP "Steam App / Android / 1.0.6 / 1328177"
