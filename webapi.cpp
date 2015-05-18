@@ -91,7 +91,7 @@ bool WebAPIClass::LoginWebAPI()
 	std::string encrypted = encrypt(mod.c_str(), exp.c_str(), password.c_str());
 
 
-	pReturn = getPage("https://steamcommunity.com/mobilelogin/dologin/", USER_AGENT_ANDROID, NULL, "username=%s&password=%s&loginfriendlyname=CallAdmin&emailauth=&captchagid=-1&remember_login=true&oauth_client_id=%s&oauth_scope=%s&emailsteamid=&rsatimestamp=%s", urlencode(username).c_str(), urlencode(encrypted).c_str(), urlencode(CLIENT_ID).c_str(), urlencode(CLIENT_SCOPE).c_str(), urlencode(timestamp).c_str());
+	pReturn = getPage("https://steamcommunity.com/mobilelogin/dologin/", USER_AGENT_ANDROID, NULL, "password=%s&username=%s&twofactorcode=&emailauth=&loginfriendlyname=CallAdmin&captchagid=-1&captcha_text=&emailsteamid=&rsatimestamp=%s&remember_login=true&oauth_client_id=%s&oauth_scope=%s", urlencode(encrypted).c_str(), urlencode(username).c_str(), urlencode(timestamp).c_str(), urlencode(CLIENT_ID).c_str(), urlencode(CLIENT_SCOPE).c_str());
 	debug(pReturn.pResultString);
 
 

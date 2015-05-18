@@ -40,7 +40,7 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
 - **Build messagebot**
   1. `wget https://github.com/popoklopsi/MessageBot/archive/master.zip -O messagebot.zip && unzip messagebot.zip`
   2. `cd MessageBot-master`
-  3. `make SMSDK=$BUILD_DIR/sourcemod-master OPENSTEAMSDK=$BUILD_DIR/open-steamworks-master OPENSSL=$BUILD_DIR/openssl-1.0.2 ZLIB=$BUILD_DIR/zlib-1.2.8 CURL=$BUILD_DIR/curl-7.40.0`
+  3. `make SMSDK=$BUILD_DIR/sourcemod-master OPENSTEAMSDK=$BUILD_DIR/open-steamworks-master OPENSSL=$BUILD_DIR/openssl-1.0.2a ZLIB=$BUILD_DIR/zlib-1.2.8 CURL=$BUILD_DIR/curl-7.40.0`
 
 ### On Windows (Visual Studio 2013): ###
 - **Build libcurl**
