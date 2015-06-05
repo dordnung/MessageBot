@@ -218,5 +218,6 @@ public Extension __ext_messagebot =
 		MarkNativeAsOptional("MessageBot_RemoveRecipient");
 		MarkNativeAsOptional("MessageBot_ClearRecipients");
 		MarkNativeAsOptional("MessageBot_SetSendMethod");
+		MarkNativeAsOptional("MessageBot_IsRecipient");
 	}
 #endif
