@@ -30,14 +30,14 @@
 #if defined SOURCEMOD_BUILD
 #include "extension.h"
 
-#define LogError(fmt, ...) smutils->LogError(myself, fmt, __VA_ARGS__)
+#define LogError(fmt, ...) smutils->LogError(myself, fmt, ##__VA_ARGS__)
 #if defined DEBUG_WEBAPI && DEBUG_WEBAPI == 1
 #define Debug(message) smutils->LogMessage(myself, message)
 #else
 #define Debug(message)
 #endif
 #else
-#define LogError(fmt, ...) printf(fmt, __VA_ARGS__)
+#define LogError(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #if defined DEBUG_WEBAPI && DEBUG_WEBAPI == 1
 #define Debug(message) printf("%s\n", message)
 #else
