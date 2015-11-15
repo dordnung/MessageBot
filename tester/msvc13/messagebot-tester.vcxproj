@@ -8,13 +8,13 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B3E797CF-4E77-4C9D-B8A8-7589B6902206}</ProjectGuid>
-    <RootNamespace>messagebot</RootNamespace>
+    <RootNamespace>messagebot-tester</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <ProjectName>messagebot</ProjectName>
+    <ProjectName>messagebot-tester</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v120</PlatformToolset>
@@ -32,13 +32,16 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">messagebot.ext</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">messagebot-tester</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\json;..\sdk;$(CURL);$(SOURCEMOD)\core;$(SOURCEMOD)\public;$(SOURCEMOD)\public\sourcepawn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;NDEBUG;_WINDOWS;_USRDLL;SDK_EXPORTS;_CRT_SECURE_NO_DEPRECATE;SOURCEMOD_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\;..\..\json;$(CURL);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;NDEBUG;_WINDOWS;_USRDLL;SDK_EXPORTS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -46,67 +49,63 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalOptions>/MP /D SE_EPISODEONE=1 /D SE_DARKMESSIAH=2 /D SE_ORANGEBOX=3 /D SE_BLOODYGOODTIME=4 /D SE_EYE=5 /D SE_CSS=6 /D SE_ORANGEBOXVALVE=7 /D SE_LEFT4DEAD=8 /D SE_LEFT4DEAD2=9 /D SE_ALIENSWARM=10 /D SE_PORTAL2=11 /D SE_CSGO=12</AdditionalOptions>
+      <AdditionalOptions>/MP</AdditionalOptions>
     </ClCompile>
     <Link>
-      <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;LIBCMTD;LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>$(CURL)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CURL);</AdditionalLibraryDirectories>
       <AdditionalDependencies>libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\base64.cpp" />
-    <ClCompile Include="..\bigint\BigInteger.cc" />
-    <ClCompile Include="..\bigint\BigIntegerAlgorithms.cc" />
-    <ClCompile Include="..\bigint\BigIntegerUtils.cc" />
-    <ClCompile Include="..\bigint\BigUnsigned.cc" />
-    <ClCompile Include="..\bigint\BigUnsignedInABase.cc" />
-    <ClCompile Include="..\extension.cpp" />
-    <ClCompile Include="..\json\json_reader.cpp" />
-    <ClCompile Include="..\json\json_value.cpp" />
-    <ClCompile Include="..\json\json_writer.cpp" />
-    <ClCompile Include="..\rsa.cpp" />
-    <ClCompile Include="..\sdk\smsdk_ext.cpp" />
-    <ClCompile Include="..\webapi.cpp" />
+    <ClCompile Include="..\..\base64.cpp" />
+    <ClCompile Include="..\..\bigint\BigInteger.cc" />
+    <ClCompile Include="..\..\bigint\BigIntegerAlgorithms.cc" />
+    <ClCompile Include="..\..\bigint\BigIntegerUtils.cc" />
+    <ClCompile Include="..\..\bigint\BigUnsigned.cc" />
+    <ClCompile Include="..\..\bigint\BigUnsignedInABase.cc" />
+    <ClCompile Include="..\..\json\json_reader.cpp" />
+    <ClCompile Include="..\..\json\json_value.cpp" />
+    <ClCompile Include="..\..\json\json_writer.cpp" />
+    <ClCompile Include="..\..\rsa.cpp" />
+    <ClCompile Include="..\..\webapi.cpp" />
+    <ClCompile Include="..\tester.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\base64.h" />
-    <ClInclude Include="..\bigint\BigInteger.hh" />
-    <ClInclude Include="..\bigint\BigIntegerAlgorithms.hh" />
-    <ClInclude Include="..\bigint\BigIntegerLibrary.hh" />
-    <ClInclude Include="..\bigint\BigIntegerUtils.hh" />
-    <ClInclude Include="..\bigint\BigUnsigned.hh" />
-    <ClInclude Include="..\bigint\BigUnsignedInABase.hh" />
-    <ClInclude Include="..\bigint\NumberlikeArray.hh" />
-    <ClInclude Include="..\extension.h" />
-    <ClInclude Include="..\json\json\autolink.h" />
-    <ClInclude Include="..\json\json\config.h" />
-    <ClInclude Include="..\json\json\features.h" />
-    <ClInclude Include="..\json\json\forwards.h" />
-    <ClInclude Include="..\json\json\json.h" />
-    <ClInclude Include="..\json\json\reader.h" />
-    <ClInclude Include="..\json\json\value.h" />
-    <ClInclude Include="..\json\json\writer.h" />
-    <ClInclude Include="..\json\json_batchallocator.h" />
-    <ClInclude Include="..\json\json_tool.h" />
-    <ClInclude Include="..\rsa.h" />
-    <ClInclude Include="..\sdk\smsdk_config.h" />
-    <ClInclude Include="..\sdk\smsdk_ext.h" />
-    <ClInclude Include="..\webapi.h" />
+    <ClInclude Include="..\..\base64.h" />
+    <ClInclude Include="..\..\bigint\BigInteger.hh" />
+    <ClInclude Include="..\..\bigint\BigIntegerAlgorithms.hh" />
+    <ClInclude Include="..\..\bigint\BigIntegerLibrary.hh" />
+    <ClInclude Include="..\..\bigint\BigIntegerUtils.hh" />
+    <ClInclude Include="..\..\bigint\BigUnsigned.hh" />
+    <ClInclude Include="..\..\bigint\BigUnsignedInABase.hh" />
+    <ClInclude Include="..\..\bigint\NumberlikeArray.hh" />
+    <ClInclude Include="..\..\json\json\autolink.h" />
+    <ClInclude Include="..\..\json\json\config.h" />
+    <ClInclude Include="..\..\json\json\features.h" />
+    <ClInclude Include="..\..\json\json\forwards.h" />
+    <ClInclude Include="..\..\json\json\json.h" />
+    <ClInclude Include="..\..\json\json\reader.h" />
+    <ClInclude Include="..\..\json\json\value.h" />
+    <ClInclude Include="..\..\json\json\writer.h" />
+    <ClInclude Include="..\..\json\json_batchallocator.h" />
+    <ClInclude Include="..\..\json\json_tool.h" />
+    <ClInclude Include="..\..\rsa.h" />
+    <ClInclude Include="..\..\webapi.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\json\json_internalarray.inl" />
-    <None Include="..\json\json_internalmap.inl" />
-    <None Include="..\json\json_valueiterator.inl" />
+    <None Include="..\..\json\json_internalarray.inl" />
+    <None Include="..\..\json\json_internalmap.inl" />
+    <None Include="..\..\json\json_valueiterator.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

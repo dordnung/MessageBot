@@ -2,14 +2,13 @@
 * -----------------------------------------------------
 * File			rsa.h
 * Authors		David <popoklopsi> Ordnung, Impact
-* Idea			Zephyrus
 * License		GPLv3
 * Web			http://popoklopsi.de, http://gugyclan.eu
 * -----------------------------------------------------
 *
 * Originally provided for CallAdmin by Popoklopsi and Impact
 *
-* Copyright (C) 2014 David <popoklopsi> Ordnung, Impact
+* Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,79 +24,54 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-
 #ifndef _INCLUDE_RSA_H_
 #define _INCLUDE_RSA_H_
-
 
 
 #include <algorithm>
 #include <ctime>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 
 #include "bigint/BigIntegerLibrary.hh"
 #include "base64.h"
-#include "extension.h"
 
 
-
-#if defined(_MSC_VER) || defined(_MSV_VER)
-	typedef unsigned __int64 uint64;
-#else
-	typedef unsigned long long uint64;
-#endif
-
-
-
-
-
-
-class Arcfour
-{
+class Arcfour {
 private:
 	int i;
 	int j;
 	int S[256];
 
 public:
-	Arcfour(uint64 *key, int len);
+	Arcfour(uint64_t *key, int len);
 
 	int next();
 };
 
 
-
-
-
-
-class SecureRandom
-{
+class SecureRandom {
 private:
 	Arcfour *state;
 	int psize;
-	uint64 pool[256];
+	uint64_t pool[256];
 	int pptr;
 
 public:
 	SecureRandom();
 
-	void seed_int(uint64 x);
+	void seed_int(uint64_t x);
 	void seed_time();
 
-	uint64 urs(uint64 a, uint64 b);
+	uint64_t urs(uint64_t a, uint64_t b);
 
 	int get_byte();
 	void nextBytes(int *ba, int len);
 };
 
 
-
-
-
-
-class RSAKey
-{
+class RSAKey {
 private:
 	BigUnsigned n;
 	BigUnsigned e;
@@ -119,7 +93,6 @@ public:
 	// Reverses an int array
 	void reverseArray(unsigned short *a, int len);
 };
-
 
 
 // Encrypt RSA with mod, exp and a password

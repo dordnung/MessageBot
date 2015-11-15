@@ -2,14 +2,13 @@
 * -----------------------------------------------------
 * File			rsa.cpp
 * Authors		David <popoklopsi> Ordnung, Impact
-* Idea			Zephyrus
 * License		GPLv3
 * Web			http://popoklopsi.de, http://gugyclan.eu
 * -----------------------------------------------------
 *
 * Originally provided for CallAdmin by Popoklopsi and Impact
 *
-* Copyright (C) 2014 David <popoklopsi> Ordnung, Impact
+* Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,22 +24,17 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-
 #include "rsa.h"
 
 
-
-Arcfour::Arcfour(uint64 *key, int len)
-{
-	for (int k = 0; k < 256; ++k)
-	{
+Arcfour::Arcfour(uint64_t *key, int len) {
+	for (int k = 0; k < 256; ++k) {
 		S[k] = k;
 	}
 
 	int l = 0;
 
-	for (int k = 0; k < 256; ++k)
-	{
+	for (int k = 0; k < 256; ++k) {
 		l = (l + S[k] + key[k % len]) & 255;
 		int t = S[k];
 
@@ -52,8 +46,8 @@ Arcfour::Arcfour(uint64 *key, int len)
 	j = 0;
 }
 
-int Arcfour::next()
-{
+
+int Arcfour::next() {
 	i = (i + 1) & 255;
 	j = (j + S[i]) & 255;
 	int t = S[i];
@@ -65,24 +59,18 @@ int Arcfour::next()
 }
 
 
-
-
-
-
-SecureRandom::SecureRandom() : psize(256)
-{
+SecureRandom::SecureRandom() : psize(256) {
 	pptr = 0;
 	state = NULL;
 
-	while (pptr < psize)
-	{
+	while (pptr < psize) {
 		srand(rand() + (unsigned int)std::time(0));
 		int rand1 = rand();
 
 		srand(rand() + (unsigned int)std::time(0));
 		int rand2 = rand();
 
-		uint64 t = (uint64)floor((rand1 * rand2) % 65537);
+		uint64_t t = (uint64_t)floor((rand1 * rand2) % 65537);
 
 		pool[pptr++] = urs(t, 8);
 		pool[pptr++] = t & 255;
@@ -94,37 +82,30 @@ SecureRandom::SecureRandom() : psize(256)
 }
 
 
-void SecureRandom::seed_int(uint64 x)
-{
+void SecureRandom::seed_int(uint64_t x) {
 	pool[pptr++] ^= x & 255;
 	pool[pptr++] ^= (x >> 8) & 255;
 	pool[pptr++] ^= (x >> 16) & 255;
 	pool[pptr++] ^= (x >> 24) & 255;
 
-	if (pptr >= psize)
-	{
+	if (pptr >= psize) {
 		pptr -= psize;
 	}
 }
 
 
-void SecureRandom::seed_time()
-{
+void SecureRandom::seed_time() {
 	seed_int(1122926989487);
 }
 
 
-uint64 SecureRandom::urs(uint64 a, uint64 b)
-{
+uint64_t SecureRandom::urs(uint64_t a, uint64_t b) {
 	a &= 0xffffffff;
 	b &= 0x1f;
-	if (a & 0x80000000 && b>0)
-	{
+	if (a & 0x80000000 && b > 0) {
 		a = (a >> 1) & 0x7fffffff;
 		a = a >> (b - 1);
-	}
-	else
-	{
+	} else {
 		a = (a >> b);
 	}
 
@@ -132,16 +113,13 @@ uint64 SecureRandom::urs(uint64 a, uint64 b)
 }
 
 
-int SecureRandom::get_byte()
-{
-	if (state == NULL)
-	{
+int SecureRandom::get_byte() {
+	if (state == NULL) {
 		seed_time();
 
 		state = new Arcfour(pool, psize);
 
-		for (pptr = 0; pptr < psize; ++pptr)
-		{
+		for (pptr = 0; pptr < psize; ++pptr) {
 			pool[pptr] = 0;
 		}
 
@@ -152,46 +130,35 @@ int SecureRandom::get_byte()
 }
 
 
-void SecureRandom::nextBytes(int *ba, int len)
-{
-	for (int i = 0; i < len; ++i)
-	{
+void SecureRandom::nextBytes(int *ba, int len) {
+	for (int i = 0; i < len; ++i) {
 		ba[i] = get_byte();
 	}
 }
 
 
-
-
-
-
-RSAKey::RSAKey(const char* N, const char* E)
-{
+RSAKey::RSAKey(const char* N, const char* E) {
 	n = BigUnsignedInABase(N, 16);
 	e = BigUnsignedInABase(E, 16);
 }
 
 
-BigUnsigned* RSAKey::doPublic(BigUnsigned* x)
-{
+BigUnsigned* RSAKey::doPublic(BigUnsigned* x) {
 	return new BigUnsigned(modexp(*x, e, n));
 }
 
 
 // Encrypt a text
-std::string RSAKey::encrypt(const char* text)
-{
+std::string RSAKey::encrypt(const char* text) {
 	BigUnsigned *m = pkcs1pad2(text, (n.bitLength() + 7) >> 3);
 
-	if (m == NULL)
-	{
+	if (m == NULL) {
 		return NULL;
 	}
 
 	BigUnsigned *c = doPublic(m);
 
-	if (c == NULL)
-	{
+	if (c == NULL) {
 		delete m;
 
 		return NULL;
@@ -210,20 +177,17 @@ std::string RSAKey::encrypt(const char* text)
 
 
 // Encrypt using pkcs1 padding 2
-BigUnsigned* RSAKey::pkcs1pad2(std::string s, int n)
-{
+BigUnsigned* RSAKey::pkcs1pad2(std::string s, int n) {
 	int temp = n;
 
-	if ((unsigned int)n < s.length() + 11)
-	{
+	if ((unsigned int)n < s.length() + 11) {
 		return NULL;
 	}
 
 	unsigned short *ba = new unsigned short[n];
 	int i = s.length() - 1;
 
-	while (i >= 0 && n > 0)
-	{
+	while (i >= 0 && n > 0) {
 		ba[--n] = s[i--];
 	}
 
@@ -234,12 +198,10 @@ BigUnsigned* RSAKey::pkcs1pad2(std::string s, int n)
 
 	int x[1];
 
-	while (n > 2)
-	{
+	while (n > 2) {
 		x[0] = 0;
 
-		while (x[0] == 0)
-		{
+		while (x[0] == 0) {
 			rng.nextBytes(x, 1);
 		}
 
@@ -257,34 +219,29 @@ BigUnsigned* RSAKey::pkcs1pad2(std::string s, int n)
 
 
 // Decodes a hex. String
-std::string RSAKey::hexDecode(const std::string& input)
-{
+std::string RSAKey::hexDecode(const std::string& input) {
 	static const char* const lut = "0123456789ABCDEF";
 	size_t len = input.length();
 
-	if (len & 1)
-	{
+	if (len & 1) {
 		return "";
 	}
 
 	std::string output;
 	output.reserve(len / 2);
 
-	for (size_t i = 0; i < len; i += 2)
-	{
+	for (size_t i = 0; i < len; i += 2) {
 		char a = input[i];
 		const char* p = std::lower_bound(lut, lut + 16, a);
 
-		if (*p != a)
-		{
+		if (*p != a) {
 			return "";
 		}
 
 		char b = input[i + 1];
 		const char* q = std::lower_bound(lut, lut + 16, b);
 
-		if (*q != b)
-		{
+		if (*q != b) {
 			return "";
 		}
 
@@ -296,12 +253,10 @@ std::string RSAKey::hexDecode(const std::string& input)
 
 
 // Reverses an int array
-void RSAKey::reverseArray(unsigned short *a, int len)
-{
+void RSAKey::reverseArray(unsigned short *a, int len) {
 	int temp, i;
 
-	for (i = 0; i < len / 2; ++i)
-	{
+	for (i = 0; i < len / 2; ++i) {
 		temp = a[len - i - 1];
 		a[len - i - 1] = a[i];
 		a[i] = temp;
@@ -309,12 +264,8 @@ void RSAKey::reverseArray(unsigned short *a, int len)
 }
 
 
-
-
-
 // Encrypt RSA with mod, exp and a password
-std::string encrypt(const char* mod, const char* exp, const char* pw)
-{
+std::string encrypt(const char* mod, const char* exp, const char* pw) {
 	RSAKey rsa(mod, exp);
 
 	return rsa.encrypt(pw);

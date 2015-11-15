@@ -24,12 +24,26 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef _INCLUDE_BASE64_H_
-#define _INCLUDE_BASE64_H_
+#include <stdio.h>
+#include <vector>
+#include "webapi.h"
 
-#include <string>
+int main(int argc, const char* argv[]) {
+	// ensure the correct number of parameters are used.
+	if (argc == 5) {
+		const char *username = argv[1];
+		const char *password = argv[2];
+		const char *message = argv[3];
+		uint64_t steamId64 = strtoull(argv[4], NULL, 10);
 
-std::string base64_encode(unsigned char const*, unsigned int len);
-std::string base64_decode(std::string const& s);
+		std::vector<uint64_t> receiver;
+		receiver.push_back(steamId64);
 
-#endif
+		// Send the message
+		WebAPIClass webApi;
+		webApi.sendMessageWebAPI(username, password, message, true, receiver);
+	} else {
+		printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
+	}
+
+}

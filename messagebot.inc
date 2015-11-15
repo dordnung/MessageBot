@@ -4,13 +4,12 @@
 
 #define __messagebot_included
 
-
-// Do not touch, bad things will happen!
-// Maximum Recipients
+// Deprecated. There can be infinite recipients
 #define MAX_RECIPIENTS 300
 
-// Max Message Length
+// Deprecated. The message can be infinite
 #define MAX_MESSAGE_LENGTH 1024
+
 
 
 enum MessageBotResult
@@ -22,6 +21,8 @@ enum MessageBotResult
 	RESULT_NO_RECEIVER,                                     // Couldn't send to any recipient
 };
 
+
+// Deprecated! Will always be zero
 enum MessageBotError
 {
 	k_EResultUnknown = 0,                                   // Unknown error. For webapi method see your error log.
@@ -111,6 +112,8 @@ enum MessageBotError
 	k_EResultRateLimitExceeded = 84,                        //
 };
 
+
+// Deprecated. Only Online API is supported.
 enum MessageBotSendMethod
 {
 	SEND_METHOD_STEAMWORKS = 0,                             // Send through Steamworks API
@@ -122,7 +125,7 @@ enum MessageBotSendMethod
  * Called when the message was queued and the result is available.
  *
  * @param result    Result code.
- * @param error     Error code.
+ * @param error     Error code. Deprecated. Will always be zero.
  */
 typeset MessageBotReceiveCB
 {
@@ -146,6 +149,7 @@ native void MessageBot_SetLoginData(const char[] steamUsername, const char[] ste
  * @param method              Method to send message.
  * @noreturn
  */
+#pragma deprecated Does nothing.
 native void MessageBot_SetSendMethod(MessageBotSendMethod method);
 
 /**

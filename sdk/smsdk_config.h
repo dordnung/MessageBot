@@ -37,7 +37,7 @@
 /* Basic information exposed publicly */
 #define SMEXT_CONF_NAME			"MessageBot"
 #define SMEXT_CONF_DESCRIPTION	"MessageBot Extension"
-#define SMEXT_CONF_VERSION		"1.5"
+#define SMEXT_CONF_VERSION		"2.0"
 #define SMEXT_CONF_AUTHOR		"Popoklopsi"
 #define SMEXT_CONF_URL			"https://forums.alliedmods.net/showthread.php?t=213670"
 #define SMEXT_CONF_LOGTAG		"MessageBot"
