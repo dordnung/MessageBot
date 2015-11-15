@@ -84,7 +84,7 @@ private:
 	Json::Value onlineStates;
 
 public:
-	WebAPIClass() :username(""), password(""), oauth(""), steamid(""), umqid(""), lastMessage(0), loggedIn(false), curl(NULL) {
+	WebAPIClass() : loggedIn(false), lastMessage(0), curl(NULL), username(""), password(""), oauth(""), steamid(""), umqid("") {
 		curl_global_init(CURL_GLOBAL_ALL);
 	}
 
