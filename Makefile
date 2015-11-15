@@ -6,7 +6,6 @@
 ###########################################
 
 SMSDK = ../sourcemod-central
-OPENSTEAMSDK = ../open-steamworks
 OPENSSL = ../openssl
 ZLIB = ../zlib
 CURL = ../curl
@@ -20,7 +19,7 @@ PROJECT = messagebot
 #Uncomment for Metamod: Source enabled extension
 #USEMETA = true
 
-OBJECTS = sdk/smsdk_ext.cpp extension.cpp osw.cpp base64.cpp rsa.cpp webapi.cpp json/json_reader.cpp json/json_value.cpp json/json_writer.cpp bigint/BigInteger.cc bigint/BigIntegerAlgorithms.cc bigint/BigIntegerUtils.cc bigint/BigUnsigned.cc bigint/BigUnsignedInABase.cc
+OBJECTS = sdk/smsdk_ext.cpp extension.cpp base64.cpp rsa.cpp webapi.cpp json/json_reader.cpp json/json_value.cpp json/json_writer.cpp bigint/BigInteger.cc bigint/BigIntegerAlgorithms.cc bigint/BigIntegerUtils.cc bigint/BigUnsigned.cc bigint/BigUnsignedInABase.cc
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
@@ -37,12 +36,12 @@ CPP_OSX = clang
 ### SDK CONFIGURATIONS ###
 ##########################
 
-INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I"$(OPENSTEAMSDK)/Open Steamworks" -I$(CURL)/include
+INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/public/sourcepawn -I$(SMSDK)/core -I$(CURL)/include
 
-LINK += -lrt -m32 -lm -ldl -lstdc++ $(OPENSTEAMSDK)/Resources/Libs/Linux32/steamclient.a $(CURL)/lib/.libs/libcurl.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a $(ZLIB)/libz.a
+LINK += -lrt -m32 -lm -ldl -lstdc++ $(CURL)/lib/.libs/libcurl.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a $(ZLIB)/libz.a
 
 CFLAGS += -std=c++0x -DPOSIX -DCURL_STATICLIB -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
-	-D_snprintf=snprintf -DSTEAMWORKS_CLIENT_INTERFACES -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
+	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
 	-Wno-overloaded-virtual -Wno-switch -Wno-deprecated -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-write-strings -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
 CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti
 
