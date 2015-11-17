@@ -13,7 +13,7 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
   1. `export BUILD_DIR=$HOME`
   2. `cd $BUILD_DIR`
 
-- **Build openssl (The version available my change!)**
+- **Build openssl (The available version may change!)**
   1. `wget https://www.openssl.org/source/openssl-1.0.2d.tar.gz && tar -xvzf openssl-1.0.2d.tar.gz`
   2. `cd openssl-1.0.2d`
   3. `setarch i386 ./config -m32 no-shared && make`

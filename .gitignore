@@ -26,6 +26,7 @@
 *.opensdf
 
 # Builds
+*.sp
 *.smx
 Release*/
 Debug*/
