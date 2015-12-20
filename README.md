@@ -14,8 +14,8 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
   2. `cd $BUILD_DIR`
 
 - **Build openssl (The available version may change!)**
-  1. `wget https://www.openssl.org/source/openssl-1.0.2d.tar.gz && tar -xvzf openssl-1.0.2d.tar.gz`
-  2. `cd openssl-1.0.2d`
+  1. `wget https://www.openssl.org/source/openssl-1.0.2e.tar.gz && tar -xvzf openssl-1.0.2e.tar.gz`
+  2. `cd openssl-1.0.2e`
   3. `setarch i386 ./config -m32 no-shared && make`
   4. `cd $BUILD_DIR`
 
@@ -28,7 +28,7 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
 - **Build libcurl**
   1. `wget http://curl.haxx.se/download/curl-7.45.0.zip && unzip curl-7.45.0.zip`
   2. `cd curl-7.45.0`
-  3. `env LIBS="-ldl" CPPFLAGS="-I$BUILD_DIR/zlib-1.2.8" LDFLAGS="-L$BUILD_DIR/openssl-1.0.2d -L$BUILD_DIR/zlib-1.2.8" ./configure --with-ssl=$BUILD_DIR/openssl-1.0.2 --with-zlib=$BUILD_DIR/zlib-1.2.8 --disable-shared --enable-static --disable-rtsp --disable-ldap --disable-ldaps --disable-sspi --disable-tls-srp --without-librtmp --without-libidn --without-libssh2 --without-nghttp2 --without-gssapi --host=i686-pc-linux-gnu CFLAGS=-m32 CC=/usr/bin/gcc && make`
+  3. `env LIBS="-ldl" CPPFLAGS="-I$BUILD_DIR/zlib-1.2.8" LDFLAGS="-L$BUILD_DIR/openssl-1.0.2e -L$BUILD_DIR/zlib-1.2.8" ./configure --with-ssl=$BUILD_DIR/openssl-1.0.2e --with-zlib=$BUILD_DIR/zlib-1.2.8 --disable-shared --enable-static --disable-rtsp --disable-ldap --disable-ldaps --disable-sspi --disable-tls-srp --without-librtmp --without-libidn --without-libssh2 --without-nghttp2 --without-gssapi --host=i686-pc-linux-gnu CFLAGS=-m32 CC=/usr/bin/gcc && make`
   4. `cd $BUILD_DIR`
 
 - **Get Sourcemod 1.7**
@@ -37,7 +37,7 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
 - **Build messagebot**
   1. `wget https://github.com/popoklopsi/MessageBot/archive/master.zip -O messagebot.zip && unzip messagebot.zip`
   2. `cd MessageBot-master`
-  3. `make SMSDK=$BUILD_DIR/sourcemod-1.7-dev OPENSSL=$BUILD_DIR/openssl-1.0.2d ZLIB=$BUILD_DIR/zlib-1.2.8 CURL=$BUILD_DIR/curl-7.45.0`
+  3. `make SMSDK=$BUILD_DIR/sourcemod-1.7-dev OPENSSL=$BUILD_DIR/openssl-1.0.2e ZLIB=$BUILD_DIR/zlib-1.2.8 CURL=$BUILD_DIR/curl-7.45.0`
 
 ### On Windows (Visual Studio 2013): ###
 - **Build libcurl**
