@@ -54,6 +54,9 @@
     <ClCompile Include="..\..\webapi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\tester.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\bigint\BigUnsigned.hh">
