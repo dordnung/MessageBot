@@ -1,14 +1,14 @@
 /**
 * -----------------------------------------------------
-* File			rsa.h
-* Authors		David <popoklopsi> Ordnung, Impact
+* File			tester.cpp
+* Authors		David O., Impact
 * License		GPLv3
 * Web			http://popoklopsi.de, http://gugyclan.eu
 * -----------------------------------------------------
 *
 * Originally provided for CallAdmin by Popoklopsi and Impact
 *
-* Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
+* Copyright (C) 2014-2016 David O., Impact
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 */
 
 #include <stdio.h>
-#include <vector>
+#include <list>
 #include "webapi.h"
 
 int main(int argc, const char* argv[]) {
@@ -36,14 +36,13 @@ int main(int argc, const char* argv[]) {
 		const char *message = argv[3];
 		uint64_t steamId64 = strtoull(argv[4], NULL, 10);
 
-		std::vector<uint64_t> receiver;
+		std::list<uint64_t> receiver;
 		receiver.push_back(steamId64);
 
 		// Send the message
 		WebAPIClass webApi;
-		webApi.sendMessageWebAPI(username, password, message, true, receiver);
+		webApi.SendMessageWebAPI(username, password, message, true, receiver);
 	} else {
 		printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
 	}
-
 }
