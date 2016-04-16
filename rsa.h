@@ -1,14 +1,14 @@
 /**
 * -----------------------------------------------------
 * File			rsa.h
-* Authors		David <popoklopsi> Ordnung, Impact
+* Authors		David O., Impact
 * License		GPLv3
 * Web			http://popoklopsi.de, http://gugyclan.eu
 * -----------------------------------------------------
 *
 * Originally provided for CallAdmin by Popoklopsi and Impact
 *
-* Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
+* Copyright (C) 2014-2016 David O., Impact
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by

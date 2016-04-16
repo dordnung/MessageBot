@@ -1,14 +1,14 @@
 /**
 * -----------------------------------------------------
 * File			rsa.cpp
-* Authors		David <popoklopsi> Ordnung, Impact
+* Authors		David O., Impact
 * License		GPLv3
 * Web			http://popoklopsi.de, http://gugyclan.eu
 * -----------------------------------------------------
 *
 * Originally provided for CallAdmin by Popoklopsi and Impact
 *
-* Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
+* Copyright (C) 2014-2016 David O., Impact
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -218,7 +218,7 @@ BigUnsigned* RSAKey::pkcs1pad2(std::string s, int n) {
 }
 
 
-// Decodes a hex. String
+// Decodes a hex String
 std::string RSAKey::hexDecode(const std::string& input) {
 	static const char* const lut = "0123456789ABCDEF";
 	size_t len = input.length();

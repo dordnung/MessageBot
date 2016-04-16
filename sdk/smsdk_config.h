@@ -1,15 +1,14 @@
 /**
  * -----------------------------------------------------
  * File			smsdk_config.h
- * Authors		David <popoklopsi> Ordnung, Impact
- * Idea			Zephyrus
+ * Authors		David O., Impact
  * License		GPLv3
  * Web			http://popoklopsi.de, http://gugyclan.eu
  * -----------------------------------------------------
  * 
  * Originally provided for CallAdmin by Popoklopsi and Impact
  * 
- * Copyright (C) 2013 David <popoklopsi> Ordnung, Impact
+ * Copyright (C) 2014-2016 David O., Impact
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +36,7 @@
 /* Basic information exposed publicly */
 #define SMEXT_CONF_NAME			"MessageBot"
 #define SMEXT_CONF_DESCRIPTION	"MessageBot Extension"
-#define SMEXT_CONF_VERSION		"2.0"
+#define SMEXT_CONF_VERSION		"2.1"
 #define SMEXT_CONF_AUTHOR		"Popoklopsi"
 #define SMEXT_CONF_URL			"https://forums.alliedmods.net/showthread.php?t=213670"
 #define SMEXT_CONF_LOGTAG		"MessageBot"
