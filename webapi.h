@@ -1,14 +1,14 @@
 /**
 * -----------------------------------------------------
 * File			webapi.h
-* Authors		David <popoklopsi> Ordnung, Impact
+* Authors		David O., Impact
 * License		GPLv3
 * Web			http://popoklopsi.de, http://gugyclan.eu
 * -----------------------------------------------------
 *
 * Originally provided for CallAdmin by Popoklopsi and Impact
 *
-* Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
+* Copyright (C) 2014-2016 David O., Impact
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,10 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-
 #ifndef _INCLUDE_WEBAPI_H_
 #define _INCLUDE_WEBAPI_H_
 
-#include <stdarg.h>
-#include <vector>
-#include <string>
+#include <list>
 #include <stdint.h>
 
 #include "rsa.h"
@@ -47,17 +44,16 @@
 
 // enum for Result
 enum CallBackResult {
-	SUCCESS = 0,
-	LOGIN_ERROR,
-	TIMEOUT_ERROR,
-	ARRAY_EMPTY,
-	NO_RECEIVER,
+	CallBackResult_SUCCESS = 0,
+	CallBackResult_LOGIN_ERROR,
+	CallBackResult_TIMEOUT_ERROR,
+	CallBackResult_ARRAY_EMPTY,
+	CallBackResult_NO_RECEIVER,
 };
 
 
 // Struct for result
 typedef struct {
-public:
 	// Chars
 	std::string resultString;
 	std::string resultHeader;
@@ -66,7 +62,7 @@ public:
 } CurlReturn;
 
 
-// Working with webpai
+// Working with WebAPI
 class WebAPIClass {
 private:
 	bool loggedIn;
@@ -94,39 +90,39 @@ public:
 	}
 
 
-	// Send process for OSW
-	CallBackResult sendMessageWebAPI(std::string user, std::string pass, std::string msg, bool showOnline, std::vector<uint64_t> &recipients);
+	// Send the message throw the web API
+	CallBackResult SendMessageWebAPI(std::string username, std::string password, std::string message, bool showOnline, std::list<uint64_t> &recipients);
 
 private:
 	// Setup web api stuff
-	bool loginWebAPI();
+	bool LoginWebAPI();
 
 	// Get UmqID
-	bool loginUMQID();
+	bool LoginUMQID();
 
 	// Get FriendList
-	void getFriendList();
+	void GetFriendList();
 
 	// Get Userstats
-	void getUserStats(std::vector<uint64_t> &recipients);
+	void GetUserStats(std::list<uint64_t> &recipients);
 
 	// Show online
-	void showOnline();
+	void ShowOnline();
 
 	// Show online
-	void acceptFriend(std::string friendSteam, std::string &sessionID);
+	void AcceptFriend(std::string friendSteam, std::string &sessionID);
 
 	// Logout 
-	void logoutWebAPI();
+	void LogoutWebAPI();
 
 	// Get a Page
-	CurlReturn getPage(const char* url, const char* userAgent, const char* cookies, char* post, ...);
+	CurlReturn GetPage(const char* url, const char* userAgent, const char* cookies, char* post, ...);
 
 	// Curl received
-	static size_t pageGet(void *buffer, size_t size, size_t nmemb, void *stream);
+	static size_t PageGet(void *buffer, size_t size, size_t nmemb, void *stream);
 
 	// header received
-	static size_t headerGet(void *buffer, size_t size, size_t nmemb, void *stream);
+	static size_t HeaderGet(void *buffer, size_t size, size_t nmemb, void *stream);
 
 	// Urlencode String
 	std::string urlencode(std::string code);

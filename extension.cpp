@@ -1,14 +1,14 @@
 /**
  * -----------------------------------------------------
  * File			extension.cpp
- * Authors		David <popoklopsi> Ordnung, Impact
+ * Authors		David O., Impact
  * License		GPLv3
  * Web			http://popoklopsi.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by Popoklopsi and Impact
  *
- * Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
+ * Copyright (C) 2014-2016 David O., Impact
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,71 +24,59 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-// Include
+ // Include
+#include <sstream>
+#include <cstdlib>
 #include "extension.h"
-#include "webapi.h"
 
-WebAPIClass *webClass;
 
-// Are we loaded?
-bool extensionLoaded;
-bool volatile m_locked;
-
-// For Forward
-std::vector <PawnFuncThreadReturn *> vecPawnReturn;
-IThreadHandle *threading;
-
-// User Data
-char username[128];
-char password[128];
-
-// Recipients
-std::vector<uint64_t> recipients;
-
-// Queue start
-std::queue<Message> messageQueue;
-
-// Register extension
+// Create and register extension
 MessageBot messageBot;
 SMEXT_LINK(&messageBot);
 
 
-// Natives
-sp_nativeinfo_t messagebot_natives[] =
+// Natives, only wrapper functions can be used
+static sp_nativeinfo_t messagebot_natives[] =
 {
 	{ "MessageBot_SetSendMethod", MessageBot_SetSendMethod },
-	{ "MessageBot_SendMessage", MessageBot_SendMessage },
+	{ "MessageBot_SendMessage", MessageBot_SendBotMessage },
 	{ "MessageBot_SetLoginData", MessageBot_SetLoginData },
 	{ "MessageBot_AddRecipient", MessageBot_AddRecipient },
-	{ "MessageBot_RemoveRecipient", MessageBot_RemoveRecipient },
-	{ "MessageBot_IsRecipient", MessageBot_IsRecipient },
-	{ "MessageBot_ClearRecipients", MessageBot_ClearRecipients },
+	{ "MessageBot_RemoveRecipient",  MessageBot_RemoveRecipient },
+	{ "MessageBot_IsRecipient",  MessageBot_IsRecipient },
+	{ "MessageBot_ClearRecipients",  MessageBot_ClearRecipients },
 	{ NULL, NULL }
 };
 
 
+// Constructor to set default values
+MessageBot::MessageBot() {
+	// Default values
+	this->webClass = NULL;
+	this->watchThread = NULL;
+	this->extensionLoaded = false;
+	this->username.clear();
+	this->password.clear();
+}
+
+
 // Extension loaded
 bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late) {
-	// Empty username and password
-	strcpy(username, "");
-	strcpy(password, "");
-
-
 	// Add natives and register library 
 	sharesys->AddNatives(myself, messagebot_natives);
 	sharesys->RegisterLibrary(myself, "messagebot");
 
-	webClass = new WebAPIClass();
+	// Create web api class
+	this->webClass = new WebAPIClass();
 
-	// GameFrame
-	smutils->AddGameFrameHook(&OnGameFrameHit);
-	m_locked = false;
+	// Register game frame hook
+	smutils->AddGameFrameHook(&MessageBot_OnGameFrameHit);
 
-	// Loaded
+	// It's now loaded
 	extensionLoaded = true;
 
-	// Start the watch Thread
-	threading = threader->MakeThread(new WatchThread(), Thread_Default);
+	// Start the watch thread
+	this->watchThread = threader->MakeThread(new WatchThread(), Thread_Default);
 
 	// Loaded
 	return true;
@@ -97,304 +85,69 @@ bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late) {
 
 // Unloaded
 void MessageBot::SDK_OnUnload() {
-	// unloaded
-	extensionLoaded = false;
+	// It's now unloaded
+	this->extensionLoaded = false;
 
-	rootconsole->ConsolePrint("[MessageBot] Please wait until Thread is finished...");
+	rootconsole->ConsolePrint("[MessageBot] Please wait until Messagebot thread is finished...");
 
-	// Stop Thread
-	if (threading != NULL && threading->GetState() != Thread_Done) {
-		threading->WaitForThread();
-		threading->DestroyThis();
+	// Remove frame hook
+	smutils->RemoveGameFrameHook(&MessageBot_OnGameFrameHit);
+
+	// Stop thread
+	if (this->watchThread != NULL) {
+		if (this->watchThread->GetState() != Thread_Done) {
+			// But first of all wait until it's finished
+			this->watchThread->WaitForThread();
+		}
+
+		// Destroys the thread object
+		this->watchThread->DestroyThis();
 	}
 
 	// Delete all messages
-	while (!messageQueue.empty()) {
-		messageQueue.pop();
+	while (!this->messageQueue.empty()) {
+		this->messageQueue.pop();
 	}
 
 	// Delete all recipients
-	recipients.clear();
-
-	// Remove Frame hook
-	smutils->RemoveGameFrameHook(&OnGameFrameHit);
+	this->recipients.clear();
 
 	// Delete webClass
-	delete webClass;
+	delete this->webClass;
+
+	// Reset values
+	this->webClass = NULL;
+	this->watchThread = NULL;
+	this->username.clear();
+	this->password.clear();
 }
 
 
 // Prepare the Forward
-void MessageBot::prepareForward(IPluginFunction *function, int result) {
-	// Create return
-	PawnFuncThreadReturn *pawnReturn = new PawnFuncThreadReturn;
-
-	// Fill in
-	pawnReturn->function = function;
-	pawnReturn->result = result;
-
-	// Push to Vector
-	m_locked = true;
-
-	vecPawnReturn.push_back(pawnReturn);
-
-	m_locked = false;
-}
-
-// Frame hit
-void OnGameFrameHit(bool simulating) {
-	// Could lock?
-	if (m_locked) {
-		return;
-	}
-
-	// Lock
-	m_locked = true;
-
-	// Item in vec?
-	if (!vecPawnReturn.empty()) {
-		// Get Last item
-		PawnFuncThreadReturn *pawnReturn = vecPawnReturn.back();
-		vecPawnReturn.pop_back();
-
-		// Call Forward
-		IPluginFunction *pawnFunc = pawnReturn->function;
-
-		if (pawnFunc != NULL && pawnFunc->IsRunnable()) {
-			pawnFunc->PushCell(pawnReturn->result);
-			pawnFunc->PushCell(0);
-			pawnFunc->Execute(NULL);
-		}
-
-		// Delete item
-		delete pawnReturn;
-	}
-
-	// Unlock
-	m_locked = false;
-}
-
-
-// Thread executed
-void WatchThread::RunThread(IThreadHandle *pHandle) {
-	// Infinite Loop while loaded
-	while (extensionLoaded) {
-		// Extension loaded?
-		if (extensionLoaded) {
-			// Sleep here, sleeping is sooo good :)
-			Sleeping(1000);
-		}
-
-		// Item in list?
-		if (extensionLoaded && !messageQueue.empty()) {
-			Message start = messageQueue.front();
-
-			// Send Message via Webapi
-			CallBackResult result = webClass->sendMessageWebAPI(start.username, start.password, start.message, start.showLogin, recipients);
-
-			messageBot.prepareForward(start.callback, result);
-
-			// Remove message
-			messageQueue.pop();
-		}
-	}
-}
-
-
-// Natives
-// Sends a Message
-cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params) {
-	// callback
-	IPluginFunction *callback;
-
-	// Message
-	char *message;
-
-	// Get Data
-	callback = pContext->GetFunctionById(params[1]);
-	pContext->LocalToString(params[2], &message);
-
-	if (callback != NULL) {
-		// Create new Message
-		Message messsage;
-
-		messsage.callback = callback;
-		messsage.username = username;
-		messsage.password = password;
-		messsage.message = message;
-		messsage.showLogin = !!params[3];
-
-		messageQueue.push(messsage);
-	}
-
-	return 1;
-}
-
-
-// Set the send method
-// Deprecated
-cell_t MessageBot_SetSendMethod(IPluginContext *pContext, const cell_t *params) {
-	return 1;
-}
-
-
-// Set the login data
-cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params) {
-	// User Data
-	char *username_cpy;
-	char *password_cpy;
-
-	// Get global username and password
-	pContext->LocalToString(params[1], &username_cpy);
-	pContext->LocalToString(params[2], &password_cpy);
-
-	// Copy Strings
-	strcpy(username, username_cpy);
-	strcpy(password, password_cpy);
-
-	return 1;
-}
-
-
-// Native to add recipient
-cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params) {
-	// User Data
-	char steamid[128];
-	char *steamid_cpy;
-
-	uint64_t commId = 0;
-
-	// Get String
-	pContext->LocalToString(params[1], &steamid_cpy);
-
-	strcpy(steamid, steamid_cpy);
-
-	// Convert to uint64_t
-	if (strstr(steamid, ":") == NULL) {
-		std::stringstream str;
-
-		str << steamid;
-		str >> commId;
-	} else {
-		commId = steamId2toSteamId64(steamid);
-	}
-
-	// Check duplicate
-	for (std::vector<uint64_t>::iterator recipient = recipients.begin(); recipient != recipients.end(); recipient++) {
-		if (commId != 0 && commId == *recipient) {
-			return 0;
-		}
-	}
-
-	uint64_t recipient;
-
-	// Maybe it's a community ID?
-	if (commId != 0) {
-		recipient = commId;
-	} else {
-		// Convert from Steamid
-		recipient = steamId2toSteamId64(steamid);
-	}
-
-	// Valid Steamid?
-	if (recipient > 0) {
-		recipients.push_back(recipient);
-
-		return 1;
-	}
-
-	return 0;
-}
-
-
-// Remove a recipient
-cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params) {
-	// User Data
-	char steamid[128];
-	char *steamid_cpy;
-
-	uint64_t commId = 0;
-
-	// Get String
-	pContext->LocalToString(params[1], &steamid_cpy);
-
-	strcpy(steamid, steamid_cpy);
-
-	// Convert to uint64_t
-	if (strstr(steamid, ":") == NULL) {
-		std::stringstream str;
-
-		str << steamid;
-		str >> commId;
-	} else {
-		commId = steamId2toSteamId64(steamid);
-	}
-
-
-	// Search for steamid
-	for (std::vector<uint64_t>::iterator recipient = recipients.begin(); recipient != recipients.end(); recipient++) {
-		if (commId != 0 && commId == *recipient) {
-			// Delete
-			recipients.erase(recipient);
-
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-
-// Is steamid a recipient?
-cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params) {
-	// User Data
-	char steamid[128];
-	char *steamid_cpy;
-
-	uint64_t commId = 0;
-
-	// Get String
-	pContext->LocalToString(params[1], &steamid_cpy);
-
-	strcpy(steamid, steamid_cpy);
-
-	// Convert to uint64_t
-	if (strstr(steamid, ":") == NULL) {
-		std::stringstream str;
-
-		str << steamid;
-		str >> commId;
-	} else {
-		commId = steamId2toSteamId64(steamid);
-	}
-
-	// Search for steamid
-	for (std::vector<uint64_t>::iterator recipient = recipients.begin(); recipient != recipients.end(); recipient++) {
-		if (commId != 0 && commId == *recipient) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-// Clear whole recipient list
-cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params) {
-	recipients.clear();
-
-	return 0;
+void MessageBot::PrepareForward(IPluginFunction *function, int result) {
+	this->mutex.lock();
+	this->pawnForwards.push({ function, result });
+	this->mutex.unlock();
 }
 
 
 // Converts a steamId2 to a steamId64
-uint64_t steamId2toSteamId64(std::string steamId2) {
-	// To small
+uint64_t MessageBot::SteamId2toSteamId64(IPluginContext *pContext, const cell_t *params, int32_t steamIdParam) {
+	// Read steamId from params
+	char *steamid;
+
+	pContext->LocalToString(params[steamIdParam], &steamid);
+	std::string steamId2(steamid);
+
+	// Maybe it's already a community Id
+	if (steamId2.find(":") == std::string::npos) {
+		return strtoull(steamid, NULL, 10);
+	}
+	
+	// To small for a valid steam Id
 	if (steamId2.length() < 11) {
 		return 0;
 	}
-
-	int server = 0;
-	int authID = 0;
 
 	// Strip the steamid
 	std::vector<std::string> strippedSteamId;
@@ -411,23 +164,244 @@ uint64_t steamId2toSteamId64(std::string steamId2) {
 		return 0;
 	}
 
-	server = atoi(strippedSteamId.at(1).c_str());
-	authID = atoi(strippedSteamId.at(2).c_str());
+	uint64_t server = strtoull(strippedSteamId.at(1).c_str(), NULL, 10);
+	uint64_t authId = strtoull(strippedSteamId.at(2).c_str(), NULL, 10);
 
-	// Wrong Format
-	if (authID == 0) {
+	// Wrong format
+	if (authId == 0) {
 		return 0;
 	}
 
-	uint64_t uintId = (uint64_t)authID * 2;
-
-	// Convert to a uint64_t
+	// Calculate community Id
 #if defined _WIN32
-	uintId += 76561197960265728 + server;
+	return  authId * 2 + 76561197960265728 + server;
 #elif defined _LINUX
-	uintId += 76561197960265728LLU + server;
+	return  authId * 2 + 76561197960265728LLU + server;
 #endif
+}
 
-	// Return it
-	return uintId;
+
+// Frame hit
+void MessageBot::OnGameFrameHit(bool simulating) {
+	// Could lock?
+	if (!this->mutex.try_lock()) {
+		return;
+	}
+
+	// Lock
+	this->mutex.lock();
+
+	// Item in queue?
+	if (!this->pawnForwards.empty()) {
+		// Get first item and remove it from queue
+		PawnForward pawnForward = this->pawnForwards.front();
+		this->pawnForwards.pop();
+
+		// Call forward if valid
+		IPluginFunction *pawnFunc = pawnForward.function;
+
+		if (pawnFunc != NULL && pawnFunc->IsRunnable()) {
+			pawnFunc->PushCell(pawnForward.result);
+			pawnFunc->PushCell(0);
+			pawnFunc->Execute(NULL);
+		}
+	}
+
+	// Unlock
+	this->mutex.unlock();
+}
+
+
+// Natives
+// Sends a Message
+cell_t MessageBot::SendBotMessage(IPluginContext *pContext, const cell_t *params) {
+	// callback
+	IPluginFunction *callback;
+
+	// Message
+	char *message;
+
+	// Get Data
+	callback = pContext->GetFunctionById(params[1]);
+	pContext->LocalToString(params[2], &message);
+
+	// Valid callback?
+	if (callback != NULL) {
+		// Create new message
+		Message messsage;
+
+		messsage.username = this->username;
+		messsage.password = this->password;
+		messsage.callback = callback;
+		messsage.message = message;
+		messsage.showLogin = !!params[3];
+
+		// Append message
+		this->messageQueue.push(messsage);
+	}
+
+	return 1;
+}
+
+
+// Set the login data
+cell_t MessageBot::SetLoginData(IPluginContext *pContext, const cell_t *params) {
+	// User Data
+	char *username;
+	char *password;
+
+	// Get global username and password
+	pContext->LocalToString(params[1], &username);
+	pContext->LocalToString(params[2], &password);
+
+	// Copy Strings
+	this->username = username;
+	this->password = password;
+
+	return 1;
+}
+
+
+// Native to add recipient
+cell_t MessageBot::AddRecipient(IPluginContext *pContext, const cell_t *params) {
+	uint64_t commId = this->SteamId2toSteamId64(pContext, params, 1);
+
+	// Valid community Id?
+	if (commId == 0) {
+		return 0;
+	}
+
+	// Check for duplicates
+	for (std::list<uint64_t>::iterator recipient = this->recipients.begin(); recipient != this->recipients.end(); recipient++) {
+		if (commId == *recipient) {
+			return 0;
+		}
+	}
+
+	// Append recipient
+	this->recipients.push_back(commId);
+
+	return 1;
+}
+
+
+// Remove a recipient
+cell_t MessageBot::RemoveRecipient(IPluginContext *pContext, const cell_t *params) {
+	uint64_t commId = this->SteamId2toSteamId64(pContext, params, 1);
+
+	// Valid community Id?
+	if (commId == 0) {
+		return 0;
+	}
+
+	// Search for steamid
+	for (std::list<uint64_t>::iterator recipient = this->recipients.begin(); recipient != this->recipients.end(); recipient++) {
+		if (commId == *recipient) {
+			// Delete
+			this->recipients.erase(recipient);
+
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
+// Is steamid a recipient?
+cell_t MessageBot::IsRecipient(IPluginContext *pContext, const cell_t *params) {
+	uint64_t commId = this->SteamId2toSteamId64(pContext, params, 1);
+
+	// Valid community Id?
+	if (commId == 0) {
+		return 0;
+	}
+
+	// Search for steamid
+	for (std::list<uint64_t>::iterator recipient = this->recipients.begin(); recipient != this->recipients.end(); recipient++) {
+		if (commId == *recipient) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+// Clear whole recipient list
+cell_t MessageBot::ClearRecipients(IPluginContext *pContext, const cell_t *params) {
+	this->recipients.clear();
+
+	return 0;
+}
+
+
+// Set the send method
+// Deprecated
+cell_t MessageBot::SetSendMethod(IPluginContext *pContext, const cell_t *params) {
+	return 1;
+}
+
+
+
+// Thread executed
+void WatchThread::RunThread(IThreadHandle *pHandle) {
+	// Infinite Loop while loaded
+	while (messageBot.extensionLoaded) {
+		// Sleep only in little steps to handle unload correctly
+		for (int i = 0; i < 20; i++) {
+			Sleeping(50);
+
+			if (!messageBot.extensionLoaded) {
+				return;
+			}
+		}
+
+		// Is a item in list?
+		if (messageBot.extensionLoaded && !messageBot.messageQueue.empty()) {
+			Message message = messageBot.messageQueue.front();
+
+			// Send Message via Webapi
+			CallBackResult result = messageBot.webClass->SendMessageWebAPI(message.username, message.password, message.message, message.showLogin, messageBot.recipients);
+
+			// Prepare the forward
+			messageBot.PrepareForward(message.callback, result);
+
+			// Remove the message from the queue
+			messageBot.messageQueue.pop();
+		}
+	}
+}
+
+
+// Game frame and native wrappers
+void MessageBot_OnGameFrameHit(bool simulating) {
+	messageBot.OnGameFrameHit(simulating);
+}
+
+cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.SetLoginData(pContext, params);
+}
+
+cell_t MessageBot_SendBotMessage(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.SendBotMessage(pContext, params);
+}
+
+cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.AddRecipient(pContext, params);
+}
+
+cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.RemoveRecipient(pContext, params);
+}
+
+cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.IsRecipient(pContext, params);
+}
+
+cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.ClearRecipients(pContext, params);
+}
+
+cell_t MessageBot_SetSendMethod(IPluginContext *pContext, const cell_t *params) {
+	return messageBot.SetSendMethod(pContext, params);
 }

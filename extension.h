@@ -1,14 +1,14 @@
 /**
  * -----------------------------------------------------
  * File			extension.h
- * Authors		David <popoklopsi> Ordnung, Impact
+ * Authors		David O., Impact
  * License		GPLv3
  * Web			http://popoklopsi.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by Popoklopsi and Impact
  *
- * Copyright (C) 2014-2015 David <popoklopsi> Ordnung, Impact
+ * Copyright (C) 2014-2016 David O., Impact
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,27 +28,25 @@
 #ifndef _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
 #define _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
 
-// Includes
-#include <stdlib.h>
-#include <sstream>
-#include <vector>
-#include <queue>
+ // Includes
 #include <string>
+#include <list>
+#include <queue>
+#include <mutex>
 
 #include "smsdk_ext.h"
-
+#include "webapi.h"
 
 // Sleeping for Linux and Windows
-#if defined _WIN32
+#ifdef _WIN32
 #define Sleeping(x) Sleep(x);
 #elif defined _LINUX
 #define Sleeping(x) usleep(x * 1000);
 #endif
 
 
-// Struct for message queue
+// Struct for a message
 typedef struct {
-public:
 	IPluginFunction *callback;
 	bool showLogin;
 
@@ -59,24 +57,67 @@ public:
 } Message;
 
 
-// Struct for forwards
+// Struct for a forward
 typedef struct {
-public:
 	IPluginFunction *function;
 	int result;
 
-} PawnFuncThreadReturn;
+} PawnForward;
 
 
 // Main extension class
 class MessageBot : public SDKExtension {
 public:
+	MessageBot();
+
 	virtual bool SDK_OnLoad(char *error, size_t maxlength, bool late);
 	virtual void SDK_OnUnload();
 
-public:
 	// Prepare Forward
-	void prepareForward(IPluginFunction *function, int result);
+	void PrepareForward(IPluginFunction *function, int result);
+
+	// Converts a steamid to a SteamId64
+	uint64_t SteamId2toSteamId64(IPluginContext *pContext, const cell_t *params, int32_t steamIdParam);
+
+	// Frame hit
+	void OnGameFrameHit(bool simulating);
+
+	// Natives
+	cell_t SetLoginData(IPluginContext *pContext, const cell_t *params);
+	cell_t SendBotMessage(IPluginContext *pContext, const cell_t *params);
+	cell_t AddRecipient(IPluginContext *pContext, const cell_t *params);
+	cell_t RemoveRecipient(IPluginContext *pContext, const cell_t *params);
+	cell_t IsRecipient(IPluginContext *pContext, const cell_t *params);
+	cell_t ClearRecipients(IPluginContext *pContext, const cell_t *params);
+
+	// Deprecated, does nothing
+	cell_t SetSendMethod(IPluginContext *pContext, const cell_t *params);
+
+private:
+	// Thread can access vars
+	friend class WatchThread;
+
+	WebAPIClass *webClass;
+	IThreadHandle *watchThread;
+
+	// Are we loaded?
+	bool extensionLoaded;
+
+	// Username and password
+	std::string username;
+	std::string password;
+
+	// Mutex for watchThread
+	std::mutex mutex;
+
+	// Recipients
+	std::list<uint64_t> recipients;
+
+	// Queue for forwards
+	std::queue<PawnForward> pawnForwards;
+
+	// Queue for messages
+	std::queue<Message> messageQueue;
 };
 
 
@@ -84,25 +125,21 @@ public:
 class WatchThread : public IThread {
 public:
 	void RunThread(IThreadHandle *pThread);
-	void OnTerminate(IThreadHandle *pThread, bool cancel) {};
+	void OnTerminate(IThreadHandle *pThread, bool cancel) {
+	};
 };
 
 
-// Natives
+// Game frame and native wrappers
+void MessageBot_OnGameFrameHit(bool simulating);
+
 cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params);
-cell_t MessageBot_SendMessage(IPluginContext *pContext, const cell_t *params);
+cell_t MessageBot_SendBotMessage(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params);
-
-// Deprecated, does nothing
 cell_t MessageBot_SetSendMethod(IPluginContext *pContext, const cell_t *params);
 
-
-void OnGameFrameHit(bool simulating);
-
-// Converts a steamid to a CSteamID
-uint64_t steamId2toSteamId64(std::string steamId2);
 
 #endif // _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
