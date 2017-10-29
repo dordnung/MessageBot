@@ -35,7 +35,7 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
   - `wget https://github.com/alliedmodders/sourcemod/archive/1.8-dev.zip -O sourcemod.zip && unzip sourcemod.zip`
 
 - **Build messagebot**
-  1. `wget https://github.com/popoklopsi/MessageBot/archive/master.zip -O messagebot.zip && unzip messagebot.zip`
+  1. `wget https://github.com/dordnung/MessageBot/archive/master.zip -O messagebot.zip && unzip messagebot.zip`
   2. `cd MessageBot-master`
   3. `make SMSDK=$BUILD_DIR/sourcemod-1.8-dev OPENSSL=$BUILD_DIR/openssl-1.0.2j ZLIB=$BUILD_DIR/zlib-1.2.10 CURL=$BUILD_DIR/curl-7.52.1`
 
@@ -54,6 +54,6 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
   2. Add a new system variable named `SOURCEMOD` with the path to sourcemod
 
 - **Build messagebot**
-  1. Download MessageBot from `https://github.com/popoklopsi/MessageBot/archive/master.zip` and unzip
+  1. Download MessageBot from `https://github.com/dordnung/MessageBot/archive/master.zip` and unzip
   2. Open `msvc15/messagebot.sln` 
   3. Build the project.

@@ -1,14 +1,14 @@
 /**
  * -----------------------------------------------------
  * File			extension.h
- * Authors		David O., Impact
+ * Authors		David Ordnung, Impact
  * License		GPLv3
- * Web			http://popoklopsi.de, http://gugyclan.eu
+ * Web			http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
- * Originally provided for CallAdmin by Popoklopsi and Impact
+ * Originally provided for CallAdmin by David Ordnung and Impact
  *
- * Copyright (C) 2014-2016 David O., Impact
+ * Copyright (C) 2014-2017 David Ordnung, Impact
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
