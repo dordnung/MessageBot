@@ -32,7 +32,6 @@
 #include <string>
 #include <list>
 #include <queue>
-#include <mutex>
 
 #include "smsdk_ext.h"
 #include "webapi.h"
@@ -47,86 +46,87 @@
 
 // Struct for a message
 typedef struct {
-	IPluginFunction *callback;
-	bool showLogin;
+    IPluginFunction *callback;
+    bool showLogin;
 
-	std::string username;
-	std::string password;
-	std::string message;
-
+    std::string username;
+    std::string password;
+    std::string message;
 } Message;
 
 
 // Struct for a forward
 typedef struct {
-	IPluginFunction *function;
-	int result;
-
+    IPluginFunction *function;
+    int result;
 } PawnForward;
 
 
 // Main extension class
 class MessageBot : public SDKExtension {
 public:
-	MessageBot();
+    MessageBot();
 
-	virtual bool SDK_OnLoad(char *error, size_t maxlength, bool late);
-	virtual void SDK_OnUnload();
+    virtual bool SDK_OnLoad(char *error, size_t maxlength, bool late);
+    virtual void SDK_OnUnload();
 
-	// Prepare Forward
-	void PrepareForward(IPluginFunction *function, int result);
+    // Prepare Forward
+    void PrepareForward(IPluginFunction *function, int result);
 
-	// Converts a steamid to a SteamId64
-	uint64_t SteamId2toSteamId64(IPluginContext *pContext, const cell_t *params, int32_t steamIdParam);
+    // Converts a steamid to a SteamId64
+    uint64_t SteamId2toSteamId64(IPluginContext *pContext, const cell_t *params, int32_t steamIdParam);
 
-	// Frame hit
-	void OnGameFrameHit(bool simulating);
+    // Frame hit
+    void OnGameFrameHit(bool simulating);
 
-	// Natives
-	cell_t SetLoginData(IPluginContext *pContext, const cell_t *params);
-	cell_t SendBotMessage(IPluginContext *pContext, const cell_t *params);
-	cell_t AddRecipient(IPluginContext *pContext, const cell_t *params);
-	cell_t RemoveRecipient(IPluginContext *pContext, const cell_t *params);
-	cell_t IsRecipient(IPluginContext *pContext, const cell_t *params);
-	cell_t ClearRecipients(IPluginContext *pContext, const cell_t *params);
+    // Natives
+    cell_t SetLoginData(IPluginContext *pContext, const cell_t *params);
+    cell_t SendBotMessage(IPluginContext *pContext, const cell_t *params);
+    cell_t AddRecipient(IPluginContext *pContext, const cell_t *params);
+    cell_t RemoveRecipient(IPluginContext *pContext, const cell_t *params);
+    cell_t IsRecipient(IPluginContext *pContext, const cell_t *params);
+    cell_t ClearRecipients(IPluginContext *pContext, const cell_t *params);
+    cell_t SetDebugStatus(IPluginContext *pContext, const cell_t *params);
 
-	// Deprecated, does nothing
-	cell_t SetSendMethod(IPluginContext *pContext, const cell_t *params);
+    // Deprecated, does nothing
+    cell_t SetSendMethod(IPluginContext *pContext, const cell_t *params);
 
 private:
-	// Thread can access vars
-	friend class WatchThread;
+    // Thread can access vars
+    friend class WatchThread;
 
-	WebAPIClass *webClass;
-	IThreadHandle *watchThread;
+    WebAPIClass *webClass;
+    IThreadHandle *watchThread;
 
-	// Are we loaded?
-	bool extensionLoaded;
+    // Are we loaded?
+    bool extensionLoaded;
 
-	// Username and password
-	std::string username;
-	std::string password;
+    // Is debugging enabled?
+    bool debugEnabled;
 
-	// Mutex for watchThread
-	std::mutex mutex;
+    // Username and password
+    std::string username;
+    std::string password;
 
-	// Recipients
-	std::list<uint64_t> recipients;
+    // Mutex for watchThread
+    IMutex *mutex;
 
-	// Queue for forwards
-	std::queue<PawnForward> pawnForwards;
+    // Recipients
+    std::list<uint64_t> recipients;
 
-	// Queue for messages
-	std::queue<Message> messageQueue;
+    // Queue for forwards
+    std::queue<PawnForward> pawnForwards;
+
+    // Queue for messages
+    std::queue<Message> messageQueue;
 };
 
 
 // Thread wachting for new messages
 class WatchThread : public IThread {
 public:
-	void RunThread(IThreadHandle *pThread);
-	void OnTerminate(IThreadHandle *pThread, bool cancel) {
-	};
+    void RunThread(IThreadHandle *pThread);
+    void OnTerminate(IThreadHandle *pThread, bool cancel) {};
 };
 
 
@@ -140,6 +140,7 @@ cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params
 cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_SetSendMethod(IPluginContext *pContext, const cell_t *params);
+cell_t MessageBot_SetDebugStatus(IPluginContext *pContext, const cell_t *params);
 
 
 #endif // _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_

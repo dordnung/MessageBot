@@ -193,6 +193,15 @@ native bool MessageBot_IsRecipient(const char[] auth);
  */
 native void MessageBot_ClearRecipients();
 
+/**
+ * Enables or disables debug messages.
+ * On debug all requests and responses will be logged.
+ *
+ * @param enableDebug        True to enable debug, otherwise false.
+ * @noreturn
+ */
+native void MessageBot_SetDebugStatus(bool enableDebug);
+
 
 /** Do Not Edit Below This Line **/
 public Extension __ext_messagebot =
@@ -223,5 +232,6 @@ public Extension __ext_messagebot =
 		MarkNativeAsOptional("MessageBot_ClearRecipients");
 		MarkNativeAsOptional("MessageBot_SetSendMethod");
 		MarkNativeAsOptional("MessageBot_IsRecipient");
+		MarkNativeAsOptional("MessageBot_SetDebugStatus");
 	}
 #endif
