@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			tester.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         Arcfour.cpp
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -24,28 +24,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
-#include <list>
+#include "Arcfour.h"
 
-#include "WebAPI.h"
 
-int main(int argc, const char* argv[]) {
-    // ensure the correct number of parameters are used.
-    if (argc == 5) {
-        Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
-
-        uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
-
-        message.debugEnabled = false;
-
-        // Send the message
-        WebAPI webApi;
-        webApi.SendSteamMessage(message);
-    } else {
-        printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
+Arcfour::Arcfour(uint64_t *key, int len) {
+    for (int k = 0; k < 256; ++k) {
+        S[k] = k;
     }
+
+    int l = 0;
+
+    for (int k = 0; k < 256; ++k) {
+        l = (l + S[k] + key[k % len]) & 255;
+        int t = S[k];
+
+        S[k] = S[l];
+        S[l] = t;
+    }
+
+    i = 0;
+    j = 0;
+}
+
+int Arcfour::Next() {
+    i = (i + 1) & 255;
+    j = (j + S[i]) & 255;
+    int t = S[i];
+
+    S[i] = S[j];
+    S[j] = t;
+
+    return S[(t + S[i]) & 255];
 }

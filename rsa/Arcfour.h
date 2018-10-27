@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			tester.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         Arcfour.h
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -24,28 +24,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
-#include <list>
+#ifndef _INCLUDE_RSA_ARCFOUR_H_
+#define _INCLUDE_RSA_ARCFOUR_H_
 
-#include "WebAPI.h"
+#include <stdint.h>
 
-int main(int argc, const char* argv[]) {
-    // ensure the correct number of parameters are used.
-    if (argc == 5) {
-        Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
+class Arcfour {
+private:
+    int i;
+    int j;
+    int S[256];
 
-        uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
+public:
+    Arcfour(uint64_t *key, int len);
 
-        message.debugEnabled = false;
+    int Next();
+};
 
-        // Send the message
-        WebAPI webApi;
-        webApi.SendSteamMessage(message);
-    } else {
-        printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
-    }
-}
+#endif

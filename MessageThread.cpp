@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			tester.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         MessageThread.cpp
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -24,28 +24,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
-#include <list>
+#include "MessageThread.h"
+#include "MessageBot.h"
+#include "Callback.h"
 
-#include "WebAPI.h"
+MessageThread::MessageThread(Message message, std::shared_ptr<CallbackFunction_t> callbackFunction) :
+    message(message), callbackFunction(callbackFunction) {}
 
-int main(int argc, const char* argv[]) {
-    // ensure the correct number of parameters are used.
-    if (argc == 5) {
-        Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
+void MessageThread::RunThread(IThreadHandle *pHandle) {
+    // Send message via Webapi
+    WebAPIResult_t result = messageBot.SendSteamMessage(message);
 
-        uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
+    // Add callback to queue
+    messageBot.AppendCallback(std::make_shared<Callback>(this->callbackFunction, result.type, result.error));
+}
 
-        message.debugEnabled = false;
-
-        // Send the message
-        WebAPI webApi;
-        webApi.SendSteamMessage(message);
-    } else {
-        printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
-    }
+void MessageThread::OnTerminate(IThreadHandle *pThread, bool cancel) {
+    messageBot.UnregisterAndDeleteThreadHandle(pThread);
+    delete this;
 }

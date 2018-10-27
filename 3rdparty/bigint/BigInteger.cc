@@ -102,26 +102,32 @@ X BigInteger::convertToUnsignedPrimitive() const {
  * nonnegative and negative numbers. */
 template <class X, class UX>
 X BigInteger::convertToSignedPrimitive() const {
-	if (sign == zero)
-		return 0;
-	else if (mag.getLength() == 1) {
-		// The single block might fit in an X.  Try the conversion.
-		Blk b = mag.getBlock(0);
-		if (sign == positive) {
-			X x = X(b);
-			if (x >= 0 && Blk(x) == b)
-				return x;
-		} else {
-			X x = -X(b);
-			/* UX(...) needed to avoid rejecting conversion of
-			 * -2^15 to a short. */
-			if (x < 0 && Blk(UX(-x)) == b)
-				return x;
-		}
-		// Otherwise fall through.
-	}
-	throw "BigInteger::to<Primitive>: "
-		"Value is too big to fit in the requested type";
+  const char* error_msg = "BigInteger::to<Primitive>: "
+    "Value is too big to fit in the requested type";
+  if (sign == zero)
+    return 0;
+  else if (mag.getLength() == 1) {
+    Blk b = mag.getBlock(0);
+
+    // Target_mask is a mask for the bits that are allowed to be non-zero
+    // If target_mask & b is not equal to 0, then b is too large to fit
+    // in the output.
+    // The one exception is the most negative value.
+    unsigned target_size = sizeof(X)*8 -1;
+    UX target_mask = (UX(1) << target_size) -1;
+    UX most_negative = target_mask + 1;
+    target_mask = ~target_mask;
+    
+    //printf("%lx %lx %lx\n", b, target_mask, most_negative);                                                                       //printf("in & target_mask: %lx\n", (b & target_mask));                                                                                 
+    if ( ((b & target_mask) == 0) || ((sign != positive) && (b == most_negative))) {
+      return (sign == negative) ? -X(b) : X(b);
+    } else {
+      throw error_msg;
+    }
+  } else {
+    // Num blocks is > 1, so value won't fit in a single primitive.
+    throw error_msg;
+  }
 }
 
 unsigned long  BigInteger::toUnsignedLong () const { return convertToUnsignedPrimitive<unsigned long >       (); }

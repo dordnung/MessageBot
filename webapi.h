@@ -1,14 +1,14 @@
 /**
  * -----------------------------------------------------
- * File			webapi.h
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         WebAPI.h
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
  *
- * Copyright (C) 2014-2017 David Ordnung, Impact
+ * Copyright (C) 2014-2018 David Ordnung, Impact
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,109 +24,53 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _INCLUDE_WEBAPI_H_
-#define _INCLUDE_WEBAPI_H_
+#ifndef _WEB_API_H_
+#define _WEB_API_H_
 
-#include <list>
-#include <stdint.h>
+#include "3rdparty/json/json/json.h"
+#include "Message.h"
+#include "WebAPIResult.h"
 
-#include "rsa.h"
-#include "json/json.h"
-#include "curl/curl.h"
+#include <curl/curl.h>
+#include <vector>
+#include <map>
+#include <string>
 
-#define CLIENT_ID "DE45CD61"
-#define CLIENT_SCOPE "read_profile write_profile read_client write_client"
-#define USER_AGENT_APP "Steam App / Android / 2.3.1 / 3922515"
-#define USER_AGENT_ANDROID "Mozilla/5.0 (Linux; U; Android; en-gb;) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"
-#define WEB_COOKIE "forceMobile=1;mobileClient=android;mobileClientVersion=3922515;Steam_Language=english;"
-
-
-// enum for Result
-enum CallBackResult {
-    CallBackResult_SUCCESS = 0,
-    CallBackResult_LOGIN_ERROR,
-    CallBackResult_TIMEOUT_ERROR,
-    CallBackResult_ARRAY_EMPTY,
-    CallBackResult_NO_RECEIVER,
-};
-
-
-// Struct for result
-typedef struct {
-    // Chars
-    std::string resultString;
-    std::string resultHeader;
-    char curlError[CURL_ERROR_SIZE + 1];
-} CurlReturn;
-
-
-// Working with WebAPI
-class WebAPIClass {
+class WebAPI {
 private:
-    bool loggedIn;
-    int lastMessage;
-
-    CURL *curl;
-
     bool debugEnabled;
 
-    std::string username;
-    std::string password;
-    std::string oauth;
-    std::string steamid;
-    std::string umqid;
-
-    Json::Value friendList;
-    Json::Value onlineStates;
+    CURL *webAPIClient;
+    CURL *steamCommunityClient;
 
 public:
-    WebAPIClass() : loggedIn(false), lastMessage(0), curl(NULL), username(""), password(""), oauth(""), steamid(""), umqid("") {
-        curl_global_init(CURL_GLOBAL_ALL);
-    }
+    WebAPI();
+    ~WebAPI();
 
-    ~WebAPIClass() {
-        // Clean
-        curl_global_cleanup();
-    }
-
-
-    // Send the message throw the web API
-    CallBackResult SendMessageWebAPI(std::string username, std::string password, std::string message, bool showOnline, std::list<uint64_t> &recipients, bool enableDebug);
+    WebAPIResult_t SendSteamMessage(Message message);
 
 private:
-    // Setup web api stuff
-    bool LoginWebAPI();
+    typedef struct {
+        std::string content;
+        std::string error;
+    } WriteDataInfo;
 
-    // Get UmqID
-    bool LoginUMQID();
-
-    // Get FriendList
-    void GetFriendList();
-
-    // Get Userstats
-    void GetUserStats(std::list<uint64_t> &recipients);
-
-    // Show online
-    void ShowOnline();
-
-    // Show online
-    void AcceptFriend(std::string friendSteam, std::string &sessionID);
-
-    // Logout
+    Json::Value LoginSteamCommunity(std::string username, std::string password);
+    Json::Value LoginWebAPI(std::string accessToken);
     void LogoutWebAPI();
 
-    // Get a Page
-    CurlReturn GetPage(const char* url, const char* userAgent, const char* cookies, char* post, ...);
+    Json::Value GetFriendList(std::string accessToken);
+    Json::Value GetUserStats(std::string accessToken, std::vector<uint64_t> &users);
+    Json::Value AcceptFriend(std::string sessionId, std::string ownSteamId, std::string friendSteamId);
+    Json::Value SendSteamMessage(std::string accessToken, std::string umqid, uint64_t steamid, std::string text);
 
-    // Curl received
-    static size_t PageGet(void *buffer, size_t size, size_t nmemb, void *stream);
+    WebAPI::WriteDataInfo GetPage(CURL *client, std::string url, std::string userAgent, char *post, ...);
+    std::string urlencode(std::string str);
 
-    // header received
-    static size_t HeaderGet(void *buffer, size_t size, size_t nmemb, void *stream);
+    void AddCookie(CURL *client, std::string cookie);
+    std::string GetCookie(CURL *client, std::string cookieName);
 
-    // Urlencode String
-    std::string urlencode(std::string code);
+    static size_t WriteData(char *ptr, size_t size, size_t nmemb, void *userdata);
 };
-
 
 #endif

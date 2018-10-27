@@ -16,134 +16,189 @@
     <Filter Include="SourceMod SDK">
       <UniqueIdentifier>{31958233-BB2D-4e41-A8F9-CE8A4684F436}</UniqueIdentifier>
     </Filter>
-    <Filter Include="BigInt">
-      <UniqueIdentifier>{9b1efbc8-4f20-4798-b8ac-1c27e2e95aea}</UniqueIdentifier>
+    <Filter Include="Header Files\RSA">
+      <UniqueIdentifier>{bf4b1e29-464a-49ac-b042-804df607d972}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Json">
-      <UniqueIdentifier>{ab30fb96-901b-44eb-835c-51606e44186d}</UniqueIdentifier>
+    <Filter Include="Source Files\RSA">
+      <UniqueIdentifier>{e6d32f0a-8ce8-4916-9928-fd6f8bc2fd83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty">
+      <UniqueIdentifier>{4c6419a4-002f-48eb-9f49-b34b1e07da27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\bigint">
+      <UniqueIdentifier>{0071ac6f-e387-4592-bcbe-ff9395d8006a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty">
+      <UniqueIdentifier>{6aef3a87-c601-45a0-b951-f1cc0b68abbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\bigint">
+      <UniqueIdentifier>{887afc06-b1b9-41a6-b8c9-2611a98a9294}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\json">
+      <UniqueIdentifier>{a65f7952-0962-49d1-81ac-4bf61c0bd0cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\json">
+      <UniqueIdentifier>{457c78c0-d52c-4efe-b8eb-8158d83d9478}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\base64">
+      <UniqueIdentifier>{87513fa6-bb55-4229-8f4e-21e3c3340a05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\base64">
+      <UniqueIdentifier>{72a30564-e63b-48a6-b4c7-441e91158b45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\json\json">
+      <UniqueIdentifier>{37d31353-1b4b-4b88-b925-092f9bba86c0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\extension.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sdk\smsdk_ext.cpp">
       <Filter>SourceMod SDK</Filter>
     </ClCompile>
-    <ClCompile Include="..\bigint\BigUnsigned.cc">
-      <Filter>BigInt</Filter>
+    <ClCompile Include="..\rsa\RSAKey.cpp">
+      <Filter>Source Files\RSA</Filter>
     </ClCompile>
-    <ClCompile Include="..\bigint\BigUnsignedInABase.cc">
-      <Filter>BigInt</Filter>
+    <ClCompile Include="..\rsa\SecureRandom.cpp">
+      <Filter>Source Files\RSA</Filter>
     </ClCompile>
-    <ClCompile Include="..\bigint\BigInteger.cc">
-      <Filter>BigInt</Filter>
+    <ClCompile Include="..\rsa\Arcfour.cpp">
+      <Filter>Source Files\RSA</Filter>
     </ClCompile>
-    <ClCompile Include="..\bigint\BigIntegerAlgorithms.cc">
-      <Filter>BigInt</Filter>
+    <ClCompile Include="..\3rdparty\bigint\BigUnsignedInABase.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
     </ClCompile>
-    <ClCompile Include="..\bigint\BigIntegerUtils.cc">
-      <Filter>BigInt</Filter>
+    <ClCompile Include="..\3rdparty\bigint\BigInteger.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
     </ClCompile>
-    <ClCompile Include="..\rsa.cpp">
+    <ClCompile Include="..\3rdparty\bigint\BigIntegerAlgorithms.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\bigint\BigIntegerUtils.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\bigint\BigUnsigned.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\natives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\base64.cpp">
+    <ClCompile Include="..\MessageBot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\json\json_reader.cpp">
-      <Filter>Json</Filter>
+    <ClCompile Include="..\3rdparty\base64\base64.cpp">
+      <Filter>Source Files\3rdparty\base64</Filter>
     </ClCompile>
-    <ClCompile Include="..\json\json_value.cpp">
-      <Filter>Json</Filter>
-    </ClCompile>
-    <ClCompile Include="..\json\json_writer.cpp">
-      <Filter>Json</Filter>
-    </ClCompile>
-    <ClCompile Include="..\webapi.cpp">
+    <ClCompile Include="..\Callback.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MessageThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\WebAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\json\json_reader.cpp">
+      <Filter>Source Files\3rdparty\json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\json\json_value.cpp">
+      <Filter>Source Files\3rdparty\json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\json\json_writer.cpp">
+      <Filter>Source Files\3rdparty\json</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\extension.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\sdk\smsdk_config.h">
       <Filter>SourceMod SDK</Filter>
     </ClInclude>
     <ClInclude Include="..\sdk\smsdk_ext.h">
       <Filter>SourceMod SDK</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\BigUnsigned.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\rsa\RSAKey.h">
+      <Filter>Header Files\RSA</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\BigUnsignedInABase.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\rsa\SecureRandom.h">
+      <Filter>Header Files\RSA</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\NumberlikeArray.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\rsa\Arcfour.h">
+      <Filter>Header Files\RSA</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\BigInteger.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\3rdparty\bigint\NumberlikeArray.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\BigIntegerAlgorithms.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\3rdparty\bigint\BigInteger.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\BigIntegerLibrary.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\3rdparty\bigint\BigIntegerAlgorithms.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
     </ClInclude>
-    <ClInclude Include="..\bigint\BigIntegerUtils.hh">
-      <Filter>BigInt</Filter>
+    <ClInclude Include="..\3rdparty\bigint\BigIntegerLibrary.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
     </ClInclude>
-    <ClInclude Include="..\rsa.h">
+    <ClInclude Include="..\3rdparty\bigint\BigIntegerUtils.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\bigint\BigUnsigned.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\bigint\BigUnsignedInABase.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\natives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\base64.h">
+    <ClInclude Include="..\MessageBot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\json_tool.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\autolink.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\config.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\features.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\forwards.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\json.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\reader.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\value.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json\writer.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\json\json_batchallocator.h">
-      <Filter>Json</Filter>
-    </ClInclude>
-    <ClInclude Include="..\webapi.h">
+    <ClInclude Include="..\Message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\json\json_valueiterator.inl">
-      <Filter>Json</Filter>
-    </None>
-    <None Include="..\json\json_internalarray.inl">
-      <Filter>Json</Filter>
-    </None>
-    <None Include="..\json\json_internalmap.inl">
-      <Filter>Json</Filter>
-    </None>
+    <ClInclude Include="..\3rdparty\base64\base64.h">
+      <Filter>Header Files\3rdparty\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Callback.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CallbackFunction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\MessageThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\WebAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\forwards.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\json.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\reader.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\value.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\writer.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\autolink.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\config.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json\features.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json_batchallocator.h">
+      <Filter>Header Files\3rdparty\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\json\json_tool.h">
+      <Filter>Header Files\3rdparty\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\WebAPIResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

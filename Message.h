@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			tester.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         Message.h
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -24,28 +24,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
-#include <list>
+#ifndef _MESSAGE_H_
+#define _MESSAGE_H_
 
-#include "WebAPI.h"
+#include <string>
+#include <vector>
 
-int main(int argc, const char* argv[]) {
-    // ensure the correct number of parameters are used.
-    if (argc == 5) {
-        Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
+typedef struct {
+    std::vector<uint64_t> recipients;
 
-        uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
+    std::string username;
+    std::string password;
+    std::string text;
 
-        message.debugEnabled = false;
+    bool debugEnabled;
+} Message;
 
-        // Send the message
-        WebAPI webApi;
-        webApi.SendSteamMessage(message);
-    } else {
-        printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
-    }
-}
+#endif

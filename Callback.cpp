@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			tester.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         Callback.cpp
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -24,28 +24,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
-#include <list>
+#include "Callback.h"
 
-#include "WebAPI.h"
+Callback::Callback(std::shared_ptr<CallbackFunction_t> callbackFunction, int type, std::string error)
+    : callbackFunction(callbackFunction), type(type), error(error) {}
 
-int main(int argc, const char* argv[]) {
-    // ensure the correct number of parameters are used.
-    if (argc == 5) {
-        Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
-
-        uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
-
-        message.debugEnabled = false;
-
-        // Send the message
-        WebAPI webApi;
-        webApi.SendSteamMessage(message);
-    } else {
-        printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
-    }
+void Callback::Fire() {
+    this->callbackFunction->function->PushCell(this->type);
+    this->callbackFunction->function->PushString(this->error.c_str());
+    this->callbackFunction->function->Execute(NULL);
 }

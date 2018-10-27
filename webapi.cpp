@@ -1,14 +1,14 @@
 /**
  * -----------------------------------------------------
- * File			webapi.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         WebAPI.cpp
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
  *
- * Copyright (C) 2014-2017 David Ordnung, Impact
+ * Copyright (C) 2014-2018 David Ordnung, Impact
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,596 +24,624 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
+#include "WebAPI.h"
+#include "rsa/RSAKey.h"
+
+#include <chrono>
 #include <stdarg.h>
-#include "webapi.h"
 
+#define CLIENT_ID "DE45CD61"
+#define CLIENT_SCOPE "read_profile write_profile read_client write_client"
 
-// Use server console if sourcemod build, otherwise use window console
+#define USER_AGENT_APP "Steam App / Android / 2.3.1 / 3922515"
+#define USER_AGENT_ANDROID "Mozilla/5.0 (Linux; U; Android; en-gb;) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"
+
+#define MOBILE_CLIENT_COOKIE "mobileClient=android; path=/; domain=steamcommunity.com; secure"
+#define MOBILE_CLIENT_VERSION_COOKIE "mobileClientVersion=3922515+%282.3.1%29; path=/; domain=steamcommunity.com; secure"
+#define LANGUAGE_COOKIE "Steam_Language=english; path=/; domain=steamcommunity.com; secure"
+#define STEAM_LOGIN_SECURE_COOKIE "steamLoginSecure=null%7C%7Cnull; path=/; domain=steamcommunity.com; secure"
+#define STEAM_LOGIN_COOKIE "steamLogin=null%7C%7Cnull; path=/; domain=steamcommunity.com;"
+
+#if defined _WIN32 || defined _WIN64
+#define sleep_ms(x) Sleep(x);
+#else
+#define sleep_ms(x) usleep(x * 1000);
+#endif
+
+// Use server console if sourcemod build, otherwise use printf
 #if defined SOURCEMOD_BUILD
-#include "extension.h"
-
+#include "MessageBot.h"
 #define LogError(fmt, ...) smutils->LogError(myself, fmt, ##__VA_ARGS__)
 #define Debug(fmt, ...) if (this->debugEnabled) smutils->LogMessage(myself, fmt, ##__VA_ARGS__)
 #else
 #define LogError(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#if defined DEBUG_WEBAPI && DEBUG_WEBAPI == 1
-#define Debug(message) printf("%s\n", message)
-#else
-#define Debug(message)
-#endif
+#define Debug(fmt, ...) if (this->debugEnabled) printf(fmt ## "\n", ##__VA_ARGS__)
 #endif
 
 
-bool WebAPIClass::LoginWebAPI() {
-    Debug("[DEBUG] Trying to login");
+WebAPI::WebAPI() : debugEnabled(false), webAPIClient(nullptr), steamCommunityClient(nullptr) {
+    this->steamCommunityClient = curl_easy_init();
+    this->webAPIClient = curl_easy_init();
+}
 
-    // Username and password must have at least a length of 3
-    if (this->username.length() < 3 || this->password.length() < 3) {
-        return false;
+WebAPI::~WebAPI() {
+    if (this->steamCommunityClient) {
+        curl_easy_cleanup(this->steamCommunityClient);
     }
 
-    // Notify steam that we need oauth
-    std::string sessionPage = std::string("https://steamcommunity.com/mobilelogin?oauth_client_id=") + urlencode(CLIENT_ID) + std::string("&oauth_scope=") + urlencode(CLIENT_SCOPE);
-    GetPage(sessionPage.c_str(), USER_AGENT_ANDROID, NULL, NULL);
+    if (this->webAPIClient) {
+        curl_easy_cleanup(this->webAPIClient);
+    }
+}
 
-    Json::Value root;
+Json::Value WebAPI::LoginSteamCommunity(std::string username, std::string password) {
+    Debug("[DEBUG] Trying to login to the steam community");
+
+    Json::Value result;
     Json::Reader reader;
 
+    // First add needed cookies
+    this->AddCookie(this->steamCommunityClient, MOBILE_CLIENT_COOKIE);
+    this->AddCookie(this->steamCommunityClient, MOBILE_CLIENT_VERSION_COOKIE);
+    this->AddCookie(this->steamCommunityClient, LANGUAGE_COOKIE);
+
+    // Notify steam that we need oauth
+    std::string sessionPage = "https://steamcommunity.com/mobilelogin?oauth_client_id=" + this->urlencode(CLIENT_ID) + "&oauth_scope=" + this->urlencode(CLIENT_SCOPE);
+
+    WriteDataInfo pageInfo = this->GetPage(this->steamCommunityClient, sessionPage, USER_AGENT_ANDROID, nullptr);
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to receive SteamCommunity RSA key. Error: '" + pageInfo.error + "'";
+        return result;
+    }
+
     // Get the RSA key to login
-    CurlReturn curlReturn = GetPage("https://steamcommunity.com/mobilelogin/getrsakey", USER_AGENT_ANDROID, NULL, "username=%s", urlencode(this->username).c_str());
+    long long time = std::chrono::system_clock::now().time_since_epoch().count();
+    pageInfo = this->GetPage(this->steamCommunityClient, "https://steamcommunity.com/mobilelogin/getrsakey", USER_AGENT_ANDROID,
+                             "username=%s&donotcache=%lld", const_cast<char *>(this->urlencode(username).c_str()), time);
 
     // Check for errors
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to receive WebAPI RSAKey. Error: %s", curlReturn.curlError);
-
-        return false;
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to receive SteamCommunity RSA key. Error: '" + pageInfo.error + "'";
+        return result;
     }
 
-    if (!reader.parse(curlReturn.resultString, root)) {
-        LogError("Failed to parse WebAPI RSAKey. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return false;
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse SteamCommunity RSA key. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
 
-    if (!root.get("success", false).asBool()) {
-        LogError("Failed to get WebAPI RSAKey");
+    if (!result.get("success", false).asBool()) {
+        std::string json = result.toStyledString();
 
-        return false;
+        result["error"] = "Failed to get SteamCommunity RSA key. JSON: '" + json + "'";
+        return result;
     }
 
-    // Read values
-    std::string mod = root.get("publickey_mod", "").asString();
-    std::string exp = root.get("publickey_exp", "").asString();
-    std::string timestamp = root.get("timestamp", "").asString();
+    // Read RSA information
+    std::string mod = result.get("publickey_mod", "").asString();
+    std::string exp = result.get("publickey_exp", "").asString();
+    std::string timestamp = result.get("timestamp", "").asString();
 
     if (mod.empty() || exp.empty() || timestamp.empty()) {
-        LogError("Failed to get WebAPI RSAKey Information");
-
-        return false;
+        result["success"] = false;
+        result["error"] = "Failed to get SteamCommunity RSA Key information. Got: (mod, exp, timestamp) -> (" + mod + ", " + exp + ", " + timestamp + ")";
+        return result;
     }
 
     // Now encrypt it with RSA
-    std::string encrypted = encrypt(mod.c_str(), exp.c_str(), this->password.c_str());
+    RSAKey rsaKey(mod.c_str(), exp.c_str());
+    std::string encrypted = rsaKey.Encrypt(password.c_str());
 
     // And login with it
-    curlReturn = GetPage("https://steamcommunity.com/mobilelogin/dologin/", USER_AGENT_ANDROID, NULL, "password=%s&username=%s&twofactorcode=&emailauth=&loginfriendlyname=CallAdmin&captchagid=-1&captcha_text=&emailsteamid=&rsatimestamp=%s&remember_login=true&oauth_client_id=%s&oauth_scope=%s", urlencode(encrypted).c_str(), urlencode(this->username).c_str(), urlencode(timestamp).c_str(), urlencode(CLIENT_ID).c_str(), urlencode(CLIENT_SCOPE).c_str());
+    pageInfo = this->GetPage(this->steamCommunityClient, "https://steamcommunity.com/mobilelogin/dologin/", USER_AGENT_ANDROID,
+                             "donotcache=%lld&password=%s&username=%s&twofactorcode=&emailauth=&loginfriendlyname=CallAdmin&captchagid=-1&captcha_text=&emailsteamid=&rsatimestamp=%s&remember_login=true&oauth_client_id=%s",
+                             time, this->urlencode(encrypted).c_str(), this->urlencode(username).c_str(), timestamp.c_str(), CLIENT_ID);
 
     // Check for errors
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to Login. Error: %s", curlReturn.curlError);
-
-        return false;
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to login. Error: '" + pageInfo.error + "'";
+        return result;
     }
 
-    if (!reader.parse(curlReturn.resultString, root)) {
-        LogError("Failed to parse Login Result. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return false;
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse login result. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
 
-    if (!root.get("success", false).asBool() || !root.get("login_complete", false).asBool()) {
-        std::string error = root.get("message", "").asString();
+    if (!result.get("success", false).asBool() || !result.get("login_complete", false).asBool()) {
+        std::string json = result.toStyledString();
 
-        if (error.empty()) {
-            error = root.toStyledString();
-        }
-
-        LogError("Failed to succesfully Login. Error: %s", error.c_str());
-
-        return false;
+        result["success"] = false;
+        result["error"] = "Failed to succesfully login. JSON: '" + json + "'";
+        return result;
     }
 
     // Read oauth from result
-    std::string auth = root.get("oauth", "").asString();
-
+    std::string auth = result.get("oauth", "").asString();
     if (auth.empty()) {
-        LogError("Failed to get Login Auth!");
-
-        return false;
+        result["success"] = false;
+        result["error"] = "Got empty oauth!";
+        return result;
     }
 
-    if (!reader.parse(auth, root)) {
-        LogError("Failed to parse Auth token. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return false;
+    result.clear();
+    if (!reader.parse(auth, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse oauth token. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
 
     // And from there read steamid and oauth token
-    this->steamid = root["steamid"].asString();
-    this->oauth = root["oauth_token"].asString();
-
-    if (this->steamid.empty() || this->oauth.empty()) {
-        LogError("Failed to get Login steamid and auth. Error: %s!", root.toStyledString().c_str());
-
-        return false;
+    if (result.get("steamid", "").asString().empty() || result.get("oauth_token", "").asString().empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to get login steamid or oauth. Got: '" + auth + "'";
+        return result;
     }
 
-    Debug("[DEBUG] Logged in");
+    Debug("[DEBUG] Logged in succesfully");
 
-    return true;
+    result["success"] = true;
+    return result;
 }
 
+Json::Value WebAPI::LoginWebAPI(std::string accessToken) {
+    Debug("[DEBUG] Trying to login to the web API");
 
-bool WebAPIClass::LoginUMQID() {
-    Debug("[DEBUG] Trying to get UMQID");
-
-    Json::Value root;
+    Json::Value result;
     Json::Reader reader;
-    std::string error;
 
     // Login to get UMQID
-    CurlReturn curlReturn = GetPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v0001", USER_AGENT_APP, NULL, "access_token=%s", urlencode(this->oauth).c_str());
+    WriteDataInfo pageInfo = this->GetPage(this->webAPIClient, "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v0001",
+                                           USER_AGENT_APP, "access_token=%s", accessToken.c_str());
 
     // Valid result?
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to receive UMQID. Error: %s", curlReturn.curlError);
-
-        return false;
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to receive UMQID. Error: '" + pageInfo.error + "'";
+        return result;
     }
 
-    if (!reader.parse(curlReturn.resultString, root)) {
-        LogError("Failed to parse UMQID. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return false;
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse UMQID. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
 
-    error = root.get("error", "").asString();
+    std::string error = result.get("error", "").asString();
     if (error != "OK") {
-        LogError("Failed to get UMQID. Error: %s", error.c_str());
-
-        return false;
+        result["success"] = false;
+        result["error"] = "Failed to get UMQID. Error: '" + error + "'";
+        return result;
     }
 
     // Parse UMQID
-    this->umqid = root.get("umqid", "").asString();
+    std::string umqid = result.get("umqid", "").asString();
+    if (umqid.empty()) {
+        std::string json = result.toStyledString();
 
-    if (this->umqid.empty()) {
-        LogError("Failed to get UMQID.");
-
-        return false;
+        result["success"] = false;
+        result["error"] = "Got empty UMQID. JSON: '" + json + "'";
+        return result;
     }
-
-    this->lastMessage = root.get("message", "").asInt();
 
     Debug("[DEBUG] Got UMQID");
-
-    return true;
+    result["success"] = true;
+    return result;
 }
 
-
-void WebAPIClass::LogoutWebAPI() {
+void WebAPI::LogoutWebAPI() {
     Debug("[DEBUG] Trying to logout");
 
-    Json::Value root;
-    Json::Reader reader;
-    std::string error = "";
+    // Invalidate community cookies
+    this->AddCookie(this->steamCommunityClient, STEAM_LOGIN_SECURE_COOKIE);
+    this->AddCookie(this->steamCommunityClient, STEAM_LOGIN_COOKIE);
 
-    // Logout
-    CurlReturn curlReturn = GetPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logoff/v0001", USER_AGENT_APP, NULL, "access_token=%s&umqid=%s", urlencode(this->oauth).c_str(), urlencode(this->umqid).c_str());
-
-    this->umqid = "";
-
-    // Successfull?
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to Logout. Error: %s", curlReturn.curlError);
-
-        return;
-    }
-
-    if (!reader.parse(curlReturn.resultString, root)) {
-        LogError("Failed to parse Logout. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return;
-    }
-
-    error = root.get("error", "").asString();
-    if (error != "OK") {
-        LogError("Failed to Logout. Error: %s", error.c_str());
-    }
+    // Just go back to session page with cookies notifying logout
+    std::string sessionPage = "https://steamcommunity.com/mobilelogin?oauth_client_id=" + this->urlencode(CLIENT_ID) + "&oauth_scope=" + this->urlencode(CLIENT_SCOPE);
+    this->GetPage(this->steamCommunityClient, sessionPage, USER_AGENT_ANDROID, nullptr);
 
     Debug("[DEBUG] Logged out");
+
+    // Add a three second timeout, as otherwise two consecutive logins can fail!
+    sleep_ms(3000);
 }
 
-
-void WebAPIClass::GetFriendList() {
+Json::Value WebAPI::GetFriendList(std::string accessToken) {
     Debug("[DEBUG] Trying to get friend list");
 
-    Json::Value root;
+    Json::Value result;
     Json::Reader reader;
-    std::string error = "";
 
     std::string url = "https://api.steampowered.com/ISteamUserOAuth/GetFriendList/v0001";
-    url = url + "?access_token=" + urlencode(this->oauth) + "&relationship=friend,requestrecipient";
+    url = url + "?access_token=" + accessToken + "&relationship=friend,requestrecipient";
 
     // Read the friend list of the bot
-    CurlReturn curlReturn = GetPage(url.c_str(), USER_AGENT_APP, NULL, "");
+    WriteDataInfo pageInfo = this->GetPage(this->webAPIClient, url, USER_AGENT_APP, nullptr);
 
     // Valid result?
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to receive FriendList. Error: %s", curlReturn.curlError);
-
-        return;
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to receive friend list. Error: '" + pageInfo.error + "'";
+        return result;
     }
 
-    if (!reader.parse(curlReturn.resultString, root)) {
-        LogError("Failed to parse FriendList. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return;
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse friend list. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
-
-    // Save friend list
-    this->friendList = root;
 
     Debug("[DEBUG] Got friend list");
+    result["success"] = true;
+    return result;
 }
 
 
-void WebAPIClass::GetUserStats(std::list<uint64_t> &recipients) {
+Json::Value WebAPI::GetUserStats(std::string accessToken, std::vector<uint64_t> &users) {
     Debug("[DEBUG] Trying to get user stats");
 
-    Json::Value root;
+    Json::Value result;
     Json::Reader reader;
-    std::string error = "";
-    bool isFirst = true;
 
     std::string url = "https://api.steampowered.com/ISteamUserOAuth/GetUserSummaries/v0001";
-    url = url + "?access_token=" + urlencode(this->oauth) + "&steamids=";
+    url = url + "?access_token=" + accessToken + "&steamids=";
 
-    // Append all recipients to the request
-    for (std::list<uint64_t>::iterator recipient = recipients.begin(); recipient != recipients.end(); recipient++) {
+    // Append all users to the request
+    bool isFirst = true;
+    for (auto user = users.begin(); user != users.end(); user++) {
         if (isFirst) {
             isFirst = false;
-
-            url = url + std::to_string(*recipient);
+            url = url + std::to_string(*user);
         } else {
-            url = url + "," + std::to_string(*recipient);
+            url = url + "," + std::to_string(*user);
         }
     }
 
-    // Get user stats of all recipients
-    CurlReturn curlReturn = GetPage(url.c_str(), USER_AGENT_APP, NULL, "");
+    // Get user stats of all users
+    WriteDataInfo pageInfo = this->GetPage(this->webAPIClient, url, USER_AGENT_APP, nullptr);
 
     // Valid result?
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to receive UserStats. Error: %s", curlReturn.curlError);
-
-        return;
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to receive user stats. Error: '" + pageInfo.error + "'";
+        return result;
     }
 
-    if (!reader.parse(curlReturn.resultString, root)) {
-        LogError("Failed to parse UserStats. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-        return;
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse user stats. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
-
-    // Save online states
-    this->onlineStates = root;
 
     Debug("[DEBUG] Got user stats");
+    result["success"] = true;
+    return result;
 }
 
 
-void WebAPIClass::ShowOnline() {
-    Debug("[DEBUG] Trying to show online status");
+Json::Value WebAPI::AcceptFriend(std::string sessionId, std::string ownSteamId, std::string friendSteamId) {
+    Debug("[DEBUG] Trying to accept friend with steamid '%s'", friendSteamId.c_str());
 
-    // Show the bot as online
-    CurlReturn curlReturn = GetPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/v0001", USER_AGENT_APP, NULL, "access_token=%s&umqid=%s&message=%i", urlencode(this->oauth).c_str(), urlencode(this->umqid).c_str(), this->lastMessage);
+    Json::Value result;
+    Json::Reader reader;
 
-    if (strcmp(curlReturn.curlError, "") != 0) {
-        LogError("Failed to show as Online. Error: %s", curlReturn.curlError);
+    // Accept the friend with a AJAX request
+    std::string url = "https://steamcommunity.com/profiles/" + ownSteamId + "/friends/action";
+    WriteDataInfo pageInfo = this->GetPage(this->steamCommunityClient, url, USER_AGENT_ANDROID,
+                                           "sessionid=%s&steamid=%s&ajax=1&action=accept&steamids[]=%s", sessionId.c_str(), ownSteamId.c_str(), friendSteamId.c_str());
 
-        return;
+    // Valid result?
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to accept friend. Error: '" + pageInfo.error + "'";
+        return result;
     }
 
-    Debug("[DEBUG] Showed as online");
-}
-
-
-void WebAPIClass::AcceptFriend(std::string friendSteam, std::string &sessionID) {
-    // First of all get a session key
-    std::string cookie = std::string(WEB_COOKIE) + std::string("steamLogin=");
-    cookie = cookie + this->steamid + std::string("||oauth:") + this->oauth;
-
-    if (sessionID.empty()) {
-        Debug("[DEBUG] Trying to get session id");
-
-        CurlReturn curlReturn = GetPage("https://steamcommunity.com/mobilesettings/GetManifest/v0001", USER_AGENT_APP, cookie.c_str(), "");
-
-        // Find session cookie
-        std::size_t found = curlReturn.resultHeader.find("sessionid=");
-
-        if (found != std::string::npos) {
-            std::size_t found2 = curlReturn.resultHeader.find(";", found);
-
-            if (found2 != std::string::npos) {
-                // Found it
-                sessionID = curlReturn.resultHeader.substr(found + 10, found2 - found - 10);
-            }
-        }
-
-        Debug("[DEBUG] Found session ID '%s'", sessionID.c_str());
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse friend accept. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
     }
 
-    Debug("[DEBUG] Trying to accept friend with steamid '%s'", friendSteam.c_str());
+    if (!result.get("success", false).asInt() != 1) {
+        std::string json = result.toStyledString();
 
-    // Found a valid session Id?
-    if (!sessionID.empty()) {
-        cookie = cookie + std::string(";sessionid=") + sessionID;
-
-        // Now add the friend
-        GetPage((std::string("https://steamcommunity.com/profiles/") + this->steamid + std::string("/home_process")).c_str(), USER_AGENT_ANDROID, cookie.c_str(), "json=1&xml=1&action=approvePending&itype=friend&perform=accept&sessionID=%s&id=%s", sessionID.c_str(), urlencode(friendSteam).c_str());
+        result["success"] = false;
+        result["error"] = "Failed to accept friend. JSON: '" + json + "'";
+        return result;
     }
 
     Debug("[DEBUG] Friend accepted");
+    result["success"] = true;
+    return result;
 }
 
+Json::Value WebAPI::SendSteamMessage(std::string accessToken, std::string umqid, uint64_t steamid, std::string text) {
+    Debug("[DEBUG] Trying to send a message to '%lld'", steamid);
 
-CallBackResult WebAPIClass::SendMessageWebAPI(std::string username, std::string password, std::string message, bool showOnline, std::list<uint64_t> &recipients, bool enableDebug) {
-    this->debugEnabled = enableDebug;
-    Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", username.c_str(), password.c_str(), message.c_str());
+    Json::Value result;
+    Json::Reader reader;
 
+    // Send the message
+    WebAPI::WriteDataInfo pageInfo = this->GetPage(this->webAPIClient, "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Message/v0001",
+                                                   USER_AGENT_APP, "access_token=%s&umqid=%s&type=saytext&steamid_dst=%lld&text=%s",
+                                                   accessToken.c_str(), umqid.c_str(), steamid, urlencode(text).c_str());
+
+    // Valid result?
+    if (!pageInfo.error.empty()) {
+        result["success"] = false;
+        result["error"] = "Failed to send message. Error: '" + pageInfo.error + "'";
+        return result;
+    }
+
+    result.clear();
+    if (!reader.parse(pageInfo.content, result)) {
+        result["success"] = false;
+        result["error"] = "Failed to parse sended message result. Error: '" + reader.getFormattedErrorMessages() + "'";
+        return result;
+    }
+
+    std::string error = result.get("error", "").asString();
+    if (error != "OK") {
+        result["success"] = false;
+        result["error"] = "Failed to send message. Error: '" + error + "'";
+        return result;
+    }
+
+    Debug("[DEBUG] Sent message");
+    result["success"] = true;
+    return result;
+}
+
+WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
+    this->debugEnabled = message.debugEnabled;
+    Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.username.c_str(), message.password.c_str(), message.text.c_str());
+
+    WebAPIResult_t result;
 
     // No recipient?
-    if (recipients.size() == 0) {
+    if (message.recipients.size() == 0) {
         Debug("[DEBUG] Couldn't send message, as no recipients are defined");
 
-        return CallBackResult_ARRAY_EMPTY;
+        result.type = WebAPIResult_NO_RECEIVER;
+        result.error = "No receiver was configurated";
+        return result;
     }
 
-    // Need complete new login?
-    if (this->username != username || !this->loggedIn || this->oauth.empty()) {
-        this->username = username;
-        this->password = password;
+    Json::Value loginSteamCommunityResult = this->LoginSteamCommunity(message.username, message.password);
+    if (!loginSteamCommunityResult["success"].asBool()) {
+        LogError(loginSteamCommunityResult["error"].asString().c_str());
 
-        if (!(this->loggedIn = this->LoginWebAPI())) {
-            return CallBackResult_LOGIN_ERROR;
+        result.type = WebAPIResult_LOGIN_ERROR;
+        result.error = loginSteamCommunityResult["error"].asString();
+        return result;
+    }
+
+    std::string accessToken = loginSteamCommunityResult["oauth_token"].asString();
+    std::string steamid = loginSteamCommunityResult["steamid"].asString();
+    std::string sessionid = this->GetCookie(this->steamCommunityClient, "sessionid");
+
+    Json::Value loginWebAPIResult = this->LoginWebAPI(accessToken);
+    if (!loginWebAPIResult["success"].asBool()) {
+        LogError(loginWebAPIResult["error"].asString().c_str());
+
+        result.type = WebAPIResult_LOGIN_ERROR;
+        result.error = loginSteamCommunityResult["error"].asString();
+        return result;
+    }
+
+    std::string umqid = loginWebAPIResult["umqid"].asString();
+
+    // Get friend list
+    Json::Value friendListResult = this->GetFriendList(accessToken);
+    if (!friendListResult["success"].asBool()) {
+        LogError(friendListResult["error"].asString().c_str());
+
+        result.type = WebAPIResult_API_ERROR;
+        result.error = loginSteamCommunityResult["error"].asString();
+        return result;
+    }
+
+    // Accept all friends
+    Json::Value friendValue = friendListResult.get("friends", "");
+
+    for (int i = 0; friendValue.isValidIndex(i); i++) {
+        std::string steam = friendValue[i].get("steamid", "").asString();
+        std::string relation = friendValue[i].get("relationship", "").asString();
+
+        if (relation == "requestrecipient") {
+            // Accept the friend if there is a request
+            this->AcceptFriend(sessionid, steamid, steam);
+
+            // Add a second timeout, as otherwise two consecutive requests can fail!
+            sleep_ms(1000);
         }
     }
 
-    // Need a UMQID?
-    if (this->umqid.empty()) {
-        if (!LoginUMQID()) {
-            this->loggedIn = false;
+    // Get user stats
+    Json::Value userStatsResult = this->GetUserStats(accessToken, message.recipients);
+    if (!userStatsResult["success"].asBool()) {
+        LogError(userStatsResult["error"].asString().c_str());
 
-            return CallBackResult_LOGIN_ERROR;
-        }
+        result.type = WebAPIResult_API_ERROR;
+        result.error = loginSteamCommunityResult["error"].asString();
+        return result;
     }
-
-    // Get user stats and the friend list
-    GetUserStats(recipients);
-    GetFriendList();
-
-    if (showOnline && this->lastMessage != 0) {
-        // Show the bot as online
-        ShowOnline();
-    }
-
-    Json::Value root;
-    Json::Reader reader;
-    std::string errors = "";
-    std::string sessionID = "";
 
     // Check if there is valid recipient which is online
-    for (std::list<uint64_t>::iterator recipient = recipients.begin(); recipient != recipients.end(); recipient++) {
-        bool isUserValid = false;
+    Json::Value userValues = userStatsResult.get("players", "");
+    for (auto recipient = message.recipients.begin(); recipient != message.recipients.end(); recipient++) {
+        for (int i = 0; userValues.isValidIndex(i); i++) {
+            std::string steam = userValues[i].get("steamid", "").asString();
+            int online = userValues[i].get("personastate", 0).asInt();
 
-        Json::Value friendValue = this->friendList.get("friends", "");
-        Json::Value userValue = this->onlineStates.get("players", "");
+            if (steam == std::to_string(*recipient) && online) {
+                // Send the message to the recipient
+                Json::Value sendMessageResult = this->SendSteamMessage(accessToken, umqid, *recipient, message.text);
+                if (!sendMessageResult["success"].asBool()) {
+                    LogError(sendMessageResult["error"].asString().c_str());
+                    this->LogoutWebAPI();
 
-        for (int j = 0; friendValue.isValidIndex(j); j++) {
-            std::string steam = friendValue[j].get("steamid", "").asString();
-            std::string relation = friendValue[j].get("relationship", "").asString();
-
-            if (steam == std::to_string(*recipient)) {
-                if (relation == "requestrecipient") {
-                    // Accept the friend if there is a request
-                    AcceptFriend(steam, sessionID);
-
-                    break;
+                    result.type = WebAPIResult_API_ERROR;
+                    result.error = loginSteamCommunityResult["error"].asString();
+                    return result;
                 }
 
-                for (int k = 0; userValue.isValidIndex(k); k++) {
-                    steam = userValue[k].get("steamid", "").asString();
-                    int online = userValue[k].get("personastate", "").asInt();
-
-                    if (steam == std::to_string(*recipient)) {
-                        if (online > 0) {
-                            isUserValid = true;
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (isUserValid) {
+                // Add a two second timeout, as otherwise two consecutive messages can fail!
+                sleep_ms(2000);
                 break;
             }
-        }
-
-        if (!isUserValid) {
-            continue;
-        }
-
-        // Send the message to the recipient
-        CurlReturn curlReturn = GetPage("https://api.steampowered.com/ISteamWebUserPresenceOAuth/Message/v0001", USER_AGENT_APP, NULL, "access_token=%s&text=%s&steamid_dst=%lld&umqid=%s&type=saytext", urlencode(this->oauth).c_str(), urlencode(message).c_str(), *recipient, urlencode(this->umqid).c_str());
-
-        // Valid?
-        if (strcmp(curlReturn.curlError, "") != 0) {
-            LogError("Failed to receive message site. Error: %s", curlReturn.curlError);
-
-            LogoutWebAPI();
-
-            return CallBackResult_TIMEOUT_ERROR;
-        }
-
-        if (!reader.parse(curlReturn.resultString, root)) {
-            LogError("Failed to parse message. Error: %s", reader.getFormattedErrorMessages().c_str());
-
-            LogoutWebAPI();
-
-            return CallBackResult_LOGIN_ERROR;
-        }
-
-        errors = root.get("error", "").asString();
-        if (errors != "OK") {
-            LogError("Failed to send Message. Error: %s", errors.c_str());
-
-            LogoutWebAPI();
-
-            return CallBackResult_NO_RECEIVER;
         }
     }
 
     // Logout on finish
-    LogoutWebAPI();
+    this->LogoutWebAPI();
     Debug("[DEBUG] Sended message");
 
-    return CallBackResult_SUCCESS;
+    result.type = WebAPIResult_SUCCESS;
+    result.error = std::string();
+    return result;
 }
 
-
-CurlReturn WebAPIClass::GetPage(const char* url, const char* useragent, const char* cookies, char* post, ...) {
-    char fmtString[1024];
-
-    CurlReturn *curlReturn = new CurlReturn;
-
-    strcpy(curlReturn->curlError, "");
-    curlReturn->resultString = "";
-    curlReturn->resultHeader = "";
+WebAPI::WriteDataInfo WebAPI::GetPage(CURL *client, std::string url, std::string useragent, char *post, ...) {
+    // First reset the curl handle
+    curl_easy_reset(client);
 
     // Process post list
-    if (post != NULL) {
+    char postStr[1024];
+    if (post) {
         va_list argptr;
+
         va_start(argptr, post);
-
-        vsprintf(fmtString, post, argptr);
-
+        vsprintf(postStr, post, argptr);
         va_end(argptr);
     } else {
-        fmtString[0] = '\0';
+        postStr[0] = '\0';
     }
 
-    curl = curl_easy_init();
+    // Set URL
+    curl_easy_setopt(client, CURLOPT_URL, url.c_str());
 
-    if (curl != NULL) {
-        struct curl_slist *chunk = NULL;
+    // Disable SSL verifying for peer
+    curl_easy_setopt(client, CURLOPT_SSL_VERIFYPEER, 0L);
 
-        // Set up Curl
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlReturn->curlError);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 0);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
-        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, WebAPIClass::HeaderGet);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WebAPIClass::PageGet);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, curlReturn);
-        curl_easy_setopt(curl, CURLOPT_HEADERDATA, curlReturn);
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
+    // Set the write function and data
+    WriteDataInfo writeData;
+    curl_easy_setopt(client, CURLOPT_WRITEFUNCTION, WebAPI::WriteData);
+    curl_easy_setopt(client, CURLOPT_WRITEDATA, &writeData);
 
-        // Append post data
-        if (strlen(fmtString) > 0) {
-            chunk = curl_slist_append(chunk, "Content-Type: application/x-www-form-urlencoded");
-            chunk = curl_slist_append(chunk, (std::string("Content-length: ") + std::to_string(strlen(fmtString))).c_str());
+    // Set timeout
+    curl_easy_setopt(client, CURLOPT_CONNECTTIMEOUT, 30);
 
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fmtString);
-        }
+    // Prevent signals to interrupt our thread
+    curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1L);
 
-        // Cookies need to be set
-        if (cookies == NULL) {
-            cookies = WEB_COOKIE;
-        }
+    // Collect error information
+    char errorBuffer[CURL_ERROR_SIZE + 1];
+    curl_easy_setopt(client, CURLOPT_ERRORBUFFER, errorBuffer);
 
-        chunk = curl_slist_append(chunk, (std::string("Cookie: ") + std::string(cookies)).c_str());
+    // Set the http user agent
+    curl_easy_setopt(client, CURLOPT_USERAGENT, useragent.c_str());
 
-        if (chunk != NULL) {
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        }
+    // Disable following redirects
+    curl_easy_setopt(client, CURLOPT_FOLLOWLOCATION, 0L);
 
-        Debug("[DEBUG] Request to '%s' with data '%s', cookie '%s' and useragent '%s'", url, fmtString, cookies, useragent);
+    // Append post data
+    struct curl_slist *chunk = nullptr;
+    if (strlen(postStr) > 0) {
+        chunk = curl_slist_append(chunk, "Content-Type: application/x-www-form-urlencoded");
+        chunk = curl_slist_append(chunk, (std::string("Content-length: ") + std::to_string(strlen(postStr))).c_str());
 
-        // Perform
-        if (curl_easy_perform(curl) != CURLE_OK) {
-            curlReturn->resultString = curlReturn->curlError;
-        }
-
-        // Clean
-        curl_easy_cleanup(curl);
-
-        if (chunk != NULL) {
-            curl_slist_free_all(chunk);
-        }
-
-        Debug("[DEBUG] Response from '%s' with response '%s' and headers '%s'", url, curlReturn->resultString.c_str(), curlReturn->resultHeader.c_str());
+        curl_easy_setopt(client, CURLOPT_POSTFIELDS, postStr);
     }
 
-    // Save result
-    CurlReturn curlReturnTemp;
+    // Enable cookie tracking
+    curl_easy_setopt(client, CURLOPT_COOKIEFILE, "");
 
-    curlReturnTemp.resultHeader = curlReturn->resultHeader;
-    curlReturnTemp.resultString = curlReturn->resultString;
-    strcpy(curlReturnTemp.curlError, curlReturn->curlError);
+    // Add all HTTP headers
+    if (chunk) {
+        curl_easy_setopt(client, CURLOPT_HTTPHEADER, chunk);
+    }
 
-    delete curlReturn;
+    Debug("[DEBUG] Request to '%s' with data '%s'", url.c_str(), postStr);
+
+    if (this->debugEnabled) {
+#if !defined SOURCEMOD_BUILD
+        // Enable verbose for non sourcemod build
+        curl_easy_setopt(client, CURLOPT_VERBOSE, 1L);
+#endif
+        // Debug all cookies
+        struct curl_slist *cookies = nullptr;
+        if (curl_easy_getinfo(client, CURLINFO_COOKIELIST, &cookies) == CURLE_OK && cookies) {
+            struct curl_slist *cookie = cookies;
+            while (cookie) {
+                Debug("Cookie: '%s'", cookie->data);
+                cookie = cookie->next;
+            }
+
+            curl_slist_free_all(cookies);
+        }
+    }
+
+    // Perform curl request
+    if (curl_easy_perform(client) != CURLE_OK) {
+        writeData.content = errorBuffer;
+        writeData.error = errorBuffer;
+    }
+
+    // Clean up curl
+    if (chunk) {
+        curl_slist_free_all(chunk);
+    }
+
+    Debug("[DEBUG] Response from '%s' with content '%s'", url.c_str(), writeData.content.c_str());
 
     // Return result
-    return curlReturnTemp;
+    return writeData;
 }
 
-
-// Got something of the page
-size_t WebAPIClass::PageGet(void *buffer, size_t size, size_t nmemb, void *stream) {
-    // Buffer
-    CurlReturn *curlReturn = static_cast<CurlReturn *>(stream);
-
-    // Add buffer
-    curlReturn->resultString.append(static_cast<char *>(buffer));
-
-    return size * nmemb;
+void WebAPI::AddCookie(CURL *client, std::string cookie) {
+    curl_easy_setopt(client, CURLOPT_COOKIELIST, ("Set-Cookie: " + cookie).c_str());
 }
 
+std::string WebAPI::GetCookie(CURL *client, std::string cookieName) {
+    struct curl_slist *cookies = nullptr;
 
-// Got something of the header
-size_t WebAPIClass::HeaderGet(void *buffer, size_t size, size_t nmemb, void *stream) {
-    // Buffer
-    CurlReturn *curlReturn = static_cast<CurlReturn *>(stream);
+    if (curl_easy_getinfo(client, CURLINFO_COOKIELIST, &cookies) == CURLE_OK && cookies) {
+        struct curl_slist *cookie = cookies;
+        while (cookie) {
+            std::string data = cookie->data;
+            if (data.find(cookieName + "\t") != std::string::npos) {
+                return data.substr(data.find(cookieName + "\t") + cookieName.length() + 1);
+            }
 
-    // Add buffer
-    curlReturn->resultHeader.append(static_cast<char *>(buffer));
+            cookie = cookie->next;
+        }
 
-    return size * nmemb;
+        curl_slist_free_all(cookies);
+    }
+
+    return std::string();
 }
 
-
-std::string WebAPIClass::urlencode(std::string code) {
-    curl = curl_easy_init();
+std::string WebAPI::urlencode(std::string str) {
+    CURL *curl = curl_easy_init();
     std::string ret = "";
 
-    if (curl != NULL) {
-        char *escaped = curl_easy_escape(curl, code.c_str(), code.length());
-
-        if (escaped != NULL) {
+    if (curl) {
+        char *escaped = curl_easy_escape(curl, str.c_str(), str.length());
+        if (escaped) {
             ret = escaped;
             curl_free(escaped);
         }
@@ -622,4 +650,15 @@ std::string WebAPIClass::urlencode(std::string code) {
     }
 
     return ret;
+}
+
+size_t WebAPI::WriteData(char *ptr, size_t size, size_t nmemb, void *userdata) {
+    // Get the data info
+    WebAPI::WriteDataInfo *dataInfo = static_cast<WebAPI::WriteDataInfo *>(userdata);
+
+    // Add to content
+    size_t realsize = size * nmemb;
+    dataInfo->content.append(ptr, realsize);
+
+    return realsize;
 }

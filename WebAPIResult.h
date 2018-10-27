@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			tester.cpp
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         WebAPIResult.h
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -24,28 +24,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
-#include <list>
+#ifndef _WEB_API_RESULT_H_
+#define _WEB_API_RESULT_H_
 
-#include "WebAPI.h"
+#include <string>
 
-int main(int argc, const char* argv[]) {
-    // ensure the correct number of parameters are used.
-    if (argc == 5) {
-        Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
+enum WebAPIResult_Type {
+    WebAPIResult_SUCCESS,
+    WebAPIResult_NO_RECEIVER,
+    WebAPIResult_LOGIN_ERROR,
+    WebAPIResult_API_ERROR,
+};
 
-        uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
+typedef struct {
+    WebAPIResult_Type type;
+    std::string error;
+} WebAPIResult_t;
 
-        message.debugEnabled = false;
-
-        // Send the message
-        WebAPI webApi;
-        webApi.SendSteamMessage(message);
-    } else {
-        printf("Usage: messagebot-tester <username> <password> <message> <receiverSteamId64>");
-    }
-}
+#endif

@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\3rdparty">
+      <UniqueIdentifier>{c0d2d62d-9e79-4302-ab27-8fe1749bbec4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\bigint">
+      <UniqueIdentifier>{d98eed11-bc39-49cd-96fd-bfa1033a45a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\json">
+      <UniqueIdentifier>{c0553617-0f11-4623-8537-d93405159976}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\json\json">
+      <UniqueIdentifier>{5e93ab88-ae7f-4d11-b24c-314aa574bc1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty">
+      <UniqueIdentifier>{7c479086-bfb6-4649-935c-20c73e1c1438}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\bigint">
+      <UniqueIdentifier>{6371c066-ab7d-4dfb-91bb-6d353a9c2b09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\json">
+      <UniqueIdentifier>{465ae45b-ba4b-4f90-985f-bee66488b672}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\json\json">
+      <UniqueIdentifier>{5b6a02ec-3d8f-4f21-a223-4ad3e58859c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rdparty\base64">
+      <UniqueIdentifier>{042f953d-f5c3-4f89-ad1d-047adacb0272}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rdparty\base64">
+      <UniqueIdentifier>{0239807f-fe98-48ab-a989-3d50b4174fae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\RSA">
+      <UniqueIdentifier>{1604d33a-77d2-41e4-999e-15613912d2f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RSA">
+      <UniqueIdentifier>{cbabdd5d-2978-4e9a-bd7b-2a61ed903780}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\tester.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\bigint\BigUnsignedInABase.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\bigint\BigInteger.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\bigint\BigIntegerAlgorithms.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\bigint\BigIntegerUtils.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\bigint\BigUnsigned.cc">
+      <Filter>Source Files\3rdparty\bigint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\json\json_writer.cpp">
+      <Filter>Source Files\3rdparty\json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\json\json_reader.cpp">
+      <Filter>Source Files\3rdparty\json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\json\json_value.cpp">
+      <Filter>Source Files\3rdparty\json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rdparty\base64\base64.cpp">
+      <Filter>Source Files\3rdparty\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rsa\SecureRandom.cpp">
+      <Filter>Source Files\RSA</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rsa\Arcfour.cpp">
+      <Filter>Source Files\RSA</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rsa\RSAKey.cpp">
+      <Filter>Source Files\RSA</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\WebAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\3rdparty\bigint\BigUnsignedInABase.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\bigint\NumberlikeArray.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\bigint\BigInteger.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\bigint\BigIntegerAlgorithms.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\bigint\BigIntegerLibrary.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\bigint\BigIntegerUtils.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\bigint\BigUnsigned.hh">
+      <Filter>Header Files\3rdparty\bigint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json_batchallocator.h">
+      <Filter>Header Files\3rdparty\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json_tool.h">
+      <Filter>Header Files\3rdparty\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\features.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\forwards.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\json.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\reader.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\value.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\writer.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\autolink.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\json\json\config.h">
+      <Filter>Header Files\3rdparty\json\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\base64\base64.h">
+      <Filter>Header Files\3rdparty\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rsa\Arcfour.h">
+      <Filter>Header Files\RSA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rsa\RSAKey.h">
+      <Filter>Header Files\RSA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rsa\SecureRandom.h">
+      <Filter>Header Files\RSA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\WebAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

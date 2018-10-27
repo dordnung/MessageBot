@@ -1,9 +1,9 @@
 /**
  * -----------------------------------------------------
- * File			smsdk_config.h
- * Authors		David Ordnung, Impact
- * License		GPLv3
- * Web			http://dordnung.de, http://gugyclan.eu
+ * File         smsdk_config.h
+ * Authors      David Ordnung, Impact
+ * License      GPLv3
+ * Web          http://dordnung.de, http://gugyclan.eu
  * -----------------------------------------------------
  *
  * Originally provided for CallAdmin by David Ordnung and Impact
@@ -34,14 +34,14 @@
  */
 
 /* Basic information exposed publicly */
-#define SMEXT_CONF_NAME			"MessageBot"
-#define SMEXT_CONF_DESCRIPTION	"MessageBot Extension"
-#define SMEXT_CONF_VERSION		"2.2"
-#define SMEXT_CONF_AUTHOR		"dordnung"
-#define SMEXT_CONF_URL			"https://forums.alliedmods.net/showthread.php?t=213670"
-#define SMEXT_CONF_LOGTAG		"MessageBot"
-#define SMEXT_CONF_LICENSE		"GPL"
-#define SMEXT_CONF_DATESTRING	__DATE__
+#define SMEXT_CONF_NAME         "MessageBot"
+#define SMEXT_CONF_DESCRIPTION  "MessageBot Extension"
+#define SMEXT_CONF_VERSION      "3.0"
+#define SMEXT_CONF_AUTHOR       "dordnung"
+#define SMEXT_CONF_URL          "https://forums.alliedmods.net/showthread.php?t=213670"
+#define SMEXT_CONF_LOGTAG       "MessageBot"
+#define SMEXT_CONF_LICENSE      "GPL"
+#define SMEXT_CONF_DATESTRING   __DATE__
 
 /**
  * @brief Exposes plugin's main interface.
@@ -67,7 +67,7 @@
 //#define SMEXT_ENABLE_LIBSYS
 //#define SMEXT_ENABLE_MENUS
 //#define SMEXT_ENABLE_ADTFACTORY
-//#define SMEXT_ENABLE_PLUGINSYS
+#define SMEXT_ENABLE_PLUGINSYS
 //#define SMEXT_ENABLE_ADMINSYS
 //#define SMEXT_ENABLE_TEXTPARSERS
 //#define SMEXT_ENABLE_USERMSGS
