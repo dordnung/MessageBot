@@ -388,7 +388,7 @@ Json::Value WebAPI::SendSteamMessage(std::string accessToken, std::string umqid,
     result.clear();
     if (!reader.parse(pageInfo.content, result)) {
         result["success"] = false;
-        result["error"] = "Failed to parse sended message result. Error: '" + reader.getFormattedErrorMessages() + "'";
+        result["error"] = "Failed to parse sent message result. Error: '" + reader.getFormattedErrorMessages() + "'";
         return result;
     }
 
@@ -499,7 +499,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
                 }
 
                 // Add a two second timeout, as otherwise two consecutive messages can fail!
-                sleep_ms(2000);
+                sleep_ms(5000);
                 break;
             }
         }
@@ -507,7 +507,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
 
     // Logout on finish
     this->LogoutWebAPI();
-    Debug("[DEBUG] Sended message");
+    Debug("[DEBUG] Sent message");
 
     result.type = WebAPIResult_SUCCESS;
     result.error = std::string();
@@ -542,7 +542,7 @@ WebAPI::WriteDataInfo WebAPI::GetPage(CURL *client, std::string url, std::string
     curl_easy_setopt(client, CURLOPT_WRITEDATA, &writeData);
 
     // Set timeout
-    curl_easy_setopt(client, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_easy_setopt(client, CURLOPT_TIMEOUT, 30);
 
     // Prevent signals to interrupt our thread
     curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1L);
