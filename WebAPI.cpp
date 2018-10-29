@@ -353,7 +353,7 @@ Json::Value WebAPI::AcceptFriend(std::string sessionId, std::string ownSteamId, 
         return result;
     }
 
-    if (!result.get("success", false).asInt() != 1) {
+    if (result.get("success", false).asInt() != 1) {
         std::string json = result.toStyledString();
 
         result["success"] = false;

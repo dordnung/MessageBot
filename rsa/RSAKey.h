@@ -43,7 +43,7 @@ public:
 
 private:
     BigUnsigned *DoPublic(BigUnsigned *x);
-    BigUnsigned *pkcs1pad2(std::string s, int n);
+    BigUnsigned *pkcs1pad2(std::string s, int num);
 
     std::string HexDecode(std::string input);
 

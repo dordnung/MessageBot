@@ -60,38 +60,38 @@ std::string RSAKey::Encrypt(std::string text) {
     return base64_encode(reinterpret_cast<const unsigned char*>(hex.c_str()), hex.length());
 }
 
-BigUnsigned *RSAKey::pkcs1pad2(std::string s, int n) {
-    int temp = n;
+BigUnsigned *RSAKey::pkcs1pad2(std::string s, int num) {
+    int temp = num;
 
-    if ((size_t)n < s.length() + 11) {
+    if ((size_t)num < s.length() + 11) {
         return nullptr;
     }
 
-    unsigned short *ba = new unsigned short[n];
+    unsigned short *ba = new unsigned short[num];
     int i = s.length() - 1;
 
-    while (i >= 0 && n > 0) {
-        ba[--n] = s[i--];
+    while (i >= 0 && num > 0) {
+        ba[--num] = s[i--];
     }
 
-    ba[--n] = 0;
+    ba[--num] = 0;
 
     SecureRandom rng;
 
     int x[1];
-    while (n > 2) {
+    while (num > 2) {
         x[0] = 0;
 
         while (x[0] == 0) {
             rng.NextBytes(x, 1);
         }
 
-        ba[--n] = x[0];
+        ba[--num] = static_cast<unsigned short>(x[0]);
     }
 
 
-    ba[--n] = 2;
-    ba[--n] = 0;
+    ba[--num] = 2;
+    ba[--num] = 0;
 
     ReverseArray(ba, temp);
 
@@ -124,7 +124,7 @@ std::string RSAKey::HexDecode(std::string input) {
             return "";
         }
 
-        output.push_back(((p - lut) << 4) | (q - lut));
+        output.push_back(static_cast<char>(((p - lut) << 4) | (q - lut)));
     }
 
     return output;
@@ -136,6 +136,6 @@ void RSAKey::ReverseArray(unsigned short *a, int len) {
     for (i = 0; i < len / 2; ++i) {
         temp = a[len - i - 1];
         a[len - i - 1] = a[i];
-        a[i] = temp;
+        a[i] = static_cast<unsigned short>(temp);
     }
 }

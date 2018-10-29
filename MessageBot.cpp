@@ -40,6 +40,7 @@
 MessageBot::MessageBot() {
     this->mutex = nullptr;
     this->isRunning = false;
+    this->runningThread = nullptr;
     this->messageThread = nullptr;
 }
 

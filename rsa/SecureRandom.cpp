@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <ctime>
+#include <math.h>
 
 
 SecureRandom::SecureRandom() : psize(256) {
