@@ -9,51 +9,71 @@ Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.n
 ## How-to build: ##
 
 ### On Linux: ###
-- **Set path to build**
+- **Set build path**
   1. `export BUILD_DIR=$HOME`
   2. `cd $BUILD_DIR`
 
-- **Build openssl (The available version may change!)**
-  1. `wget https://www.openssl.org/source/openssl-1.0.2j.tar.gz && tar -xvzf openssl-1.0.2j.tar.gz`
-  2. `cd openssl-1.0.2j`
+- **Build openssl**
+  1. `wget https://www.openssl.org/source/openssl-1.1.1.tar.gz && tar -xvzf openssl-1.1.1.tar.gz`
+  2. `cd openssl-1.1.1`
   3. `setarch i386 ./config -m32 no-shared && make`
+  4. `mkdir lib && cp *.a lib/`
   4. `cd $BUILD_DIR`
 
 - **Build zlib**
-  1. `wget http://zlib.net/zlib1210.zip && unzip zlib1210.zip`
-  2. `cd zlib-1.2.10`
+  1. `wget http://zlib.net/zlib1211.zip && unzip zlib1211.zip`
+  2. `cd zlib-1.2.11`
   3. `CFLAGS=-m32 ./configure -static && make`
+  4. `mkdir include && mkdir lib && cp *.h include/ && cp libz.a lib`
   4. `cd $BUILD_DIR`
 
+- **Build libidn**
+  1. `wget https://ftp.gnu.org/gnu/libidn/libidn2-2.0.5.tar.gz && tar -xvzf libidn2-2.0.5.tar.gz`
+  2. `cd libidn2-2.0.5`
+  3. `CFLAGS=-m32 ./configure --disable-shared --enable-static --disable-doc && make`
+  4. `mkdir include && cp lib/*.h include/ && cp lib/.libs/libidn2.a lib`
+  5. `cd $BUILD_DIR`
+
 - **Build libcurl**
-  1. `wget http://curl.haxx.se/download/curl-7.52.1.zip && unzip curl-7.52.1.zip`
-  2. `cd curl-7.52.1`
-  3. `env LIBS="-ldl" CPPFLAGS="-I$BUILD_DIR/zlib-1.2.10" LDFLAGS="-L$BUILD_DIR/openssl-1.0.2j -L$BUILD_DIR/zlib-1.2.10" ./configure --with-ssl=$BUILD_DIR/openssl-1.0.2j --with-zlib=$BUILD_DIR/zlib-1.2.10 --disable-shared --enable-static --disable-rtsp --disable-ldap --disable-ldaps --disable-sspi --disable-tls-srp --without-librtmp --without-libidn --without-libssh2 --without-nghttp2 --without-gssapi --host=i686-pc-linux-gnu CFLAGS=-m32 CC=/usr/bin/gcc && make`
+  1. `wget https://curl.haxx.se/download/curl-7.61.1.zip && unzip curl-7.61.1.zip`
+  2. `cd curl-7.61.1`
+  3. `./configure --with-ssl=$BUILD_DIR/openssl-1.1.1 --with-zlib=$BUILD_DIR/zlib-1.2.11 --with-libidn2=$BUILD_DIR/libidn2-2.0.5 --disable-shared --enable-static --disable-rtsp --disable-ldap --disable-ldaps --disable-manual --disable-libcurl-option --without-librtmp --without-libssh2 --without-nghttp2 --without-gssapi --host=i386-pc-linux-gnu CFLAGS=-m32 && make`
+  4. **DO NOT INSTALL IT!**
   4. `cd $BUILD_DIR`
 
-- **Get Sourcemod 1.8**
-  - `wget https://github.com/alliedmodders/sourcemod/archive/1.8-dev.zip -O sourcemod.zip && unzip sourcemod.zip`
+- **Get Sourcemod 1.9**
+  1. `git clone https://github.com/alliedmodders/sourcemod --recursive --branch 1.9-dev --single-branch sourcemod-1.9`
 
-- **Build messagebot**
-  1. `wget https://github.com/dordnung/MessageBot/archive/master.zip -O messagebot.zip && unzip messagebot.zip`
-  2. `cd MessageBot-master`
-  3. `make SMSDK=$BUILD_DIR/sourcemod-1.8-dev OPENSSL=$BUILD_DIR/openssl-1.0.2j ZLIB=$BUILD_DIR/zlib-1.2.10 CURL=$BUILD_DIR/curl-7.52.1`
+- **Build MessageBot**
+  1. `git clone https://github.com/dordnung/MessageBot`
+  2. `cd MessageBot`
+  3. `make SMSDK=$BUILD_DIR/sourcemod-1.9 OPENSSL=$BUILD_DIR/openssl-1.1.1 ZLIB=$BUILD_DIR/zlib-1.2.11 IDN=$BUILD_DIR/libidn2-2.0.5 CURL=$BUILD_DIR/curl-7.61.1`
 
-### On Windows (Visual Studio 2015): ###
+### On Windows (Visual Studio 2015/2017): ###
+- **Build zlib**
+  1. Download zlib from `https://zlib.net/zlib1211.zip` and unzip to some folder
+  2. Open the `Developer Command Prompt for VS 2017` or `Developer Command Prompt for VS 2015` at the `zlib-1.2.11` folder
+  3. Type `vcvarsall.bat x86 8.1` and press ENTER
+  3. Type `nmake /f win32/Makefile.msc LOC=-MT` and press ENTER
+  4. Type `md lib include` and press ENTER
+  5. Type `copy /Y zlib.lib lib` and press ENTER
+  6. Type `copy /Y *h include` and press ENTER
+  7. Add a new system variable named `ZLIB` pointing to the `zlib-1.2.11` folder
+
 - **Build libcurl**
-  1. Download curl from `http://curl.haxx.se/download/curl-7.52.1.zip` and unzip
-  2. Add VS to the system PATH:
-    - For example: `C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin` 
-  3. Open command line at `curl-7.52.1/winbuild`
-  4. Type `vcvars32.bat` and press ENTER
-  5. Type `nmake /f Makefile.vc mode=static VC=14 MACHINE=x86` and press ENTER
-  6. Add a new system variable named `CURL` with the path to the curl-7.52.1 folder
+  1. Download curl from `https://curl.haxx.se/download/curl-7.61.1.zip` and unzip to some folder
+  2. Reopen the `Developer Command Prompt for VS 2017` or `Developer Command Prompt for VS 2015` at the `curl-7.61.1` folder
+  3. Type `vcvarsall.bat x86 8.1` and press ENTER
+  4. Type `cd winbuild` and press ENTER
+  5. Type `nmake /f Makefile.vc mode=static WITH_ZLIB=static ZLIB_PATH=%ZLIB% RTLIBCFG=static VC=15 MACHINE=x86` and press ENTER
+  6. Add a new system variable named `CURL` pointing to the `curl-7.61.1/builds/libcurl-vc15-x86-release-static-zlib-static-ipv6-sspi-winssl` folder
 
-- **Get Sourcemod**
-  1. Download sourcemod from `https://github.com/alliedmodders/sourcemod/archive/master.zip` and unzip
-  2. Add a new system variable named `SOURCEMOD` with the path to sourcemod
+- **Get Sourcemod 1.9**
+  1. Retrieve Sourcemod 1.9 with: `git clone https://github.com/alliedmodders/sourcemod --recursive --branch 1.9-dev --single-branch sourcemod-1.9`
+  2. Add a new system variable named `SOURCEMOD19` with the path to the sourcemod-1.9 folder
 
-- **Build messagebot**
-  1. Download MessageBot from `https://github.com/dordnung/MessageBot/archive/master.zip` and unzip
-  2. Open `msvc15/messagebot.sln` 
-  3. Build the project.
+- **Build MessageBot**
+  1. Retrieve MessageBot with: `git clone https://github.com/dordnung/MessageBot`
+  2. Reopen the `Developer Command Prompt for VS 2017` or `Developer Command Prompt for VS 2015` at the `MessageBot` folder
+  3. Type `vcvarsall.bat x86 8.1` and press ENTER
+  4. Type `msbuild msvc17/messagebot.sln /p:Platform="win32"` and press ENTER
