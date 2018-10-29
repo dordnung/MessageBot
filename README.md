@@ -1,5 +1,6 @@
 MessageBot
 ==========
+[![Build Status](https://travis-ci.org/Impact123/CallAdmin.svg)](https://travis-ci.org/Impact123/CallAdmin)
 
 Allows to send messages to players with a Steam Bot
 
