@@ -19,7 +19,12 @@ PROJECT = messagebot
 #Uncomment for Metamod: Source enabled extension
 #USEMETA = true
 
-OBJECTS = sdk/smsdk_ext.cpp extension.cpp base64.cpp rsa.cpp webapi.cpp json/json_reader.cpp json/json_value.cpp json/json_writer.cpp bigint/BigInteger.cc bigint/BigIntegerAlgorithms.cc bigint/BigIntegerUtils.cc bigint/BigUnsigned.cc bigint/BigUnsignedInABase.cc
+OBJECTS = 3rdparty/base64/base64.cpp
+OBJECTS += 3rdparty/bigint/BigInteger.cc 3rdparty/bigint/BigIntegerAlgorithms.cc 3rdparty/bigint/BigIntegerUtils.cc 3rdparty/bigint/BigUnsigned.cc 3rdparty/bigint/BigUnsignedInABase.cc
+OBJECTS += 3rdparty/json/json_reader.cpp 3rdparty/json/json_value.cpp 3rdparty/json/json_writer.cpp
+OBJECTS += rsa/Arcfour.cpp rsa/RSAKey.cpp rsa/SecureRandom.cpp
+OBJECTS += sdk/smsdk_ext.cpp
+OBJECTS += Callback.cpp Config.cpp MessageBot.cpp natives.cpp WebAPI.cpp
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
@@ -36,7 +41,7 @@ CPP_OSX = clang
 ### SDK CONFIGURATIONS ###
 ##########################
 
-INCLUDE += -I. -I.. -Isdk -Ijson -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/core -I$(CURL)/include
+INCLUDE += -I. -I.. -Isdk -I3rdparty -I3rdparty/json -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/core -I$(CURL)/include
 
 LINK += -lrt -m32 -lm -ldl -lstdc++ $(CURL)/lib/.libs/libcurl.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a $(ZLIB)/libz.a
 
@@ -112,9 +117,11 @@ $(BIN_DIR)/%.o: %.cpp
 	$(CPP) $(INCLUDE) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
 
 all: check
+	mkdir -p $(BIN_DIR)/3rdparty/base64
+	mkdir -p $(BIN_DIR)/3rdparty/bigint
+	mkdir -p $(BIN_DIR)/3rdparty/json
+	mkdir -p $(BIN_DIR)/rsa
 	mkdir -p $(BIN_DIR)/sdk
-	mkdir -p $(BIN_DIR)/json
-	mkdir -p $(BIN_DIR)/bigint
 	$(MAKE) -f $(MAKEFILE_NAME) extension
 
 check:
@@ -129,8 +136,10 @@ default: all
 
 clean: check
 	rm -rf $(BIN_DIR)/*.o
+	rm -rf $(BIN_DIR)/3rdparty/base64/*.o
+	rm -rf $(BIN_DIR)/3rdparty/bigint/*.o
+	rm -rf $(BIN_DIR)/3rdparty/json/*.o
+	rm -rf $(BIN_DIR)/rsa/*.o
 	rm -rf $(BIN_DIR)/sdk/*.o
-	rm -rf $(BIN_DIR)/json/*.o
-	rm -rf $(BIN_DIR)/bigint/*.o
 	rm -rf $(BIN_DIR)/$(BINARY)
 

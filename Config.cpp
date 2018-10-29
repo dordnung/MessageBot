@@ -29,7 +29,7 @@
 // Global variable for accessing config
 Config messageBotConfig;
 
-Config::Config() : debugEnabled(false), waitBetweenMessages(2000), waitAfterLogout(5000) {}
+Config::Config() : waitBetweenMessages(2000), waitAfterLogout(5000), debugEnabled(false) {}
 
 void Config::ResetConfig() {
     this->username = std::string();

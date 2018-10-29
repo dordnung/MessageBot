@@ -27,7 +27,7 @@
 #include "Callback.h"
 
 Callback::Callback(std::shared_ptr<CallbackFunction_t> callbackFunction, int type, std::string error)
-    : callbackFunction(callbackFunction), type(type), error(error) {}
+    : type(type), error(error), callbackFunction(callbackFunction) {}
 
 void Callback::Fire() {
     // Just call the callback function with the type and the error
