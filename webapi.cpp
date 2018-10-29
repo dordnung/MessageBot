@@ -25,6 +25,7 @@
  */
 
 #include "WebAPI.h"
+#include "Config.h"
 #include "rsa/RSAKey.h"
 
 #include <chrono>
@@ -40,7 +41,7 @@
 #define MOBILE_CLIENT_VERSION_COOKIE "mobileClientVersion=3922515+%282.3.1%29; path=/; domain=steamcommunity.com; secure"
 #define LANGUAGE_COOKIE "Steam_Language=english; path=/; domain=steamcommunity.com; secure"
 #define STEAM_LOGIN_SECURE_COOKIE "steamLoginSecure=null%7C%7Cnull; path=/; domain=steamcommunity.com; secure"
-#define STEAM_LOGIN_COOKIE "steamLogin=null%7C%7Cnull; path=/; domain=steamcommunity.com;"
+#define STEAM_LOGIN_COOKIE "steamLogin=null%7C%7Cnull; path=/; domain=steamcommunity.com; secure"
 
 #if defined _WIN32 || defined _WIN64
 #define sleep_ms(x) Sleep(x);
@@ -249,9 +250,6 @@ void WebAPI::LogoutWebAPI() {
     this->GetPage(this->steamCommunityClient, sessionPage, USER_AGENT_ANDROID, nullptr);
 
     Debug("[DEBUG] Logged out");
-
-    // Add a three second timeout, as otherwise two consecutive logins can fail!
-    sleep_ms(3000);
 }
 
 Json::Value WebAPI::GetFriendList(std::string accessToken) {
@@ -405,13 +403,13 @@ Json::Value WebAPI::SendSteamMessage(std::string accessToken, std::string umqid,
 }
 
 WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
-    this->debugEnabled = message.debugEnabled;
-    Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.username.c_str(), message.password.c_str(), message.text.c_str());
+    this->debugEnabled = message.config.debugEnabled;
+    Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.config.username.c_str(), message.config.password.c_str(), message.text.c_str());
 
     WebAPIResult_t result;
 
     // No recipient?
-    if (message.recipients.size() == 0) {
+    if (message.config.recipients.size() == 0) {
         Debug("[DEBUG] Couldn't send message, as no recipients are defined");
 
         result.type = WebAPIResult_NO_RECEIVER;
@@ -419,7 +417,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
         return result;
     }
 
-    Json::Value loginSteamCommunityResult = this->LoginSteamCommunity(message.username, message.password);
+    Json::Value loginSteamCommunityResult = this->LoginSteamCommunity(message.config.username, message.config.password);
     if (!loginSteamCommunityResult["success"].asBool()) {
         LogError(loginSteamCommunityResult["error"].asString().c_str());
 
@@ -470,7 +468,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
     }
 
     // Get user stats
-    Json::Value userStatsResult = this->GetUserStats(accessToken, message.recipients);
+    Json::Value userStatsResult = this->GetUserStats(accessToken, message.config.recipients);
     if (!userStatsResult["success"].asBool()) {
         LogError(userStatsResult["error"].asString().c_str());
 
@@ -481,7 +479,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
 
     // Check if there is valid recipient which is online
     Json::Value userValues = userStatsResult.get("players", "");
-    for (auto recipient = message.recipients.begin(); recipient != message.recipients.end(); recipient++) {
+    for (auto recipient = message.config.recipients.begin(); recipient != message.config.recipients.end(); recipient++) {
         for (int i = 0; userValues.isValidIndex(i); i++) {
             std::string steam = userValues[i].get("steamid", "").asString();
             int online = userValues[i].get("personastate", 0).asInt();
@@ -493,13 +491,16 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
                     LogError(sendMessageResult["error"].asString().c_str());
                     this->LogoutWebAPI();
 
+                    // Wait after logout, as steam needs a few seconds until logout is complete
+                    sleep_ms(message.config.waitAfterLogout);
+
                     result.type = WebAPIResult_API_ERROR;
                     result.error = loginSteamCommunityResult["error"].asString();
                     return result;
                 }
 
-                // Add a two second timeout, as otherwise two consecutive messages can fail!
-                sleep_ms(5000);
+                // Wait between messages, as the user may occur some limitations on how much messages he can send
+                sleep_ms(message.config.waitBetweenMessages);
                 break;
             }
         }
@@ -507,6 +508,10 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
 
     // Logout on finish
     this->LogoutWebAPI();
+
+    // Wait after logout, as steam needs a few seconds until logout is complete
+    sleep_ms(message.config.waitAfterLogout);
+
     Debug("[DEBUG] Sent message");
 
     result.type = WebAPIResult_SUCCESS;

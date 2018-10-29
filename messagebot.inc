@@ -31,10 +31,17 @@
 
 enum MessageBotResult
 {
-    RESULT_NO_ERROR,                  // Everything worked fine
-    RESULT_NO_RECEIVER,               // No recipients were setup prior to sending a message
-    RESULT_LOGIN_ERROR,               // Error while trying to login
-    RESULT_API_ERROR,                 // Error during an API request
+    RESULT_NO_ERROR,                   // Everything worked fine
+    RESULT_NO_RECEIVER,                // No recipients were setup prior to sending a message
+    RESULT_LOGIN_ERROR,                // Error while trying to login
+    RESULT_API_ERROR,                  // Error during an API request
+};
+
+enum MessageBotOption
+{
+    OPTION_DEBUG,                      // Option for enable or disable debugging
+    OPTION_WAIT_BETWEEN_MESSAGES,      // Option to set wait time in milliseconds between messages
+    OPTION_WAIT_AFTER_LOGOUT,          // Option to set wait time in milliseconds after logout
 };
 
 
@@ -100,13 +107,23 @@ native bool MessageBot_IsRecipient(const char[] auth);
 native void MessageBot_ClearRecipients();
 
 /**
- * Enables or disables debug messages.
- * On debug all requests and responses will be logged.
+ * Sets a specific option.
  *
- * @param enableDebug        True to enable debug, otherwise false.
+ * @param option       The option to set the value of.
+ * @param value        The value to set the option to.
+ *                     For boolean values use 1 for true and 0 for false.
  * @noreturn
  */
-native void MessageBot_SetDebugStatus(bool enableDebug);
+native void MessageBot_SetOption(MessageBotOption option, int value);
+
+/**
+ * Returns the current value of a specific option.
+ *
+ * @param option       The option to get the value of.
+ * @noreturn           The current value of the option.
+ *                     For boolean values 1 for true and 0 for false will be returned.
+ */
+native int MessageBot_GetOption(MessageBotOption option);
 
 
 public Extension __ext_messagebot =
@@ -136,6 +153,8 @@ public Extension __ext_messagebot =
         MarkNativeAsOptional("MessageBot_RemoveRecipient");
         MarkNativeAsOptional("MessageBot_IsRecipient");
         MarkNativeAsOptional("MessageBot_ClearRecipients");
-        MarkNativeAsOptional("MessageBot_SetDebugStatus");
+        MarkNativeAsOptional("MessageBot_SetOption");
+        MarkNativeAsOptional("MessageBot_GetOption");
+
     }
 #endif

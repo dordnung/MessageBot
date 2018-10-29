@@ -30,8 +30,6 @@
 #include "sdk/smsdk_ext.h"
 #include "Callback.h"
 #include "CallbackFunction.h"
-#include "Message.h"
-#include "MessageThread.h"
 #include "WebAPIResult.h"
 
 #include <string>
@@ -51,12 +49,6 @@ private:
 
     bool isRunning;
 
-    std::string username;
-    std::string password;
-
-    std::vector<uint64_t> recipients;
-    bool debugEnabled;
-
 public:
     MessageBot();
 
@@ -71,17 +63,6 @@ public:
     void UnregisterAndDeleteThreadHandle(IThreadHandle *threadHandle);
 
     void OnGameFrameHit(bool simulating);
-
-    cell_t SetLoginData(IPluginContext *pContext, const cell_t *params);
-    cell_t SendBotMessage(IPluginContext *pContext, const cell_t *params);
-    cell_t AddRecipient(IPluginContext *pContext, const cell_t *params);
-    cell_t RemoveRecipient(IPluginContext *pContext, const cell_t *params);
-    cell_t IsRecipient(IPluginContext *pContext, const cell_t *params);
-    cell_t ClearRecipients(IPluginContext *pContext, const cell_t *params);
-    cell_t SetDebugStatus(IPluginContext *pContext, const cell_t *params);
-
-    WebAPIResult_t SendSteamMessage(Message message);
-    uint64_t SteamId2toSteamId64(std::string steamId2);
 };
 
 void MessageBot_OnGameFrameHit(bool simulating);

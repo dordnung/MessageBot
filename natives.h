@@ -28,6 +28,7 @@
 #define _NATIVES_H_
 
 #include "sdk/smsdk_ext.h"
+#include <string>
 
 cell_t MessageBot_SetLoginData(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_SendBotMessage(IPluginContext *pContext, const cell_t *params);
@@ -35,7 +36,10 @@ cell_t MessageBot_AddRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_RemoveRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_IsRecipient(IPluginContext *pContext, const cell_t *params);
 cell_t MessageBot_ClearRecipients(IPluginContext *pContext, const cell_t *params);
-cell_t MessageBot_SetDebugStatus(IPluginContext *pContext, const cell_t *params);
+cell_t MessageBot_SetOption(IPluginContext *pContext, const cell_t *params);
+cell_t MessageBot_GetOption(IPluginContext *pContext, const cell_t *params);
+
+uint64_t MessageBot_SteamId2toSteamId64(std::string steamId2);
 
 static sp_nativeinfo_t messagebot_natives[] =
 {
@@ -45,7 +49,8 @@ static sp_nativeinfo_t messagebot_natives[] =
     { "MessageBot_RemoveRecipient", MessageBot_RemoveRecipient },
     { "MessageBot_IsRecipient", MessageBot_IsRecipient },
     { "MessageBot_ClearRecipients", MessageBot_ClearRecipients },
-    { "MessageBot_SetDebugStatus", MessageBot_SetDebugStatus },
+    { "MessageBot_SetOption", MessageBot_SetOption },
+    { "MessageBot_GetOption", MessageBot_GetOption },
     { NULL, NULL }
 };
 

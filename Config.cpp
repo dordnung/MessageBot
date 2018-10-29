@@ -1,6 +1,6 @@
 /**
  * -----------------------------------------------------
- * File         Message.h
+ * File         Config.cpp
  * Authors      David Ordnung, Impact
  * License      GPLv3
  * Web          http://dordnung.de, http://gugyclan.eu
@@ -24,18 +24,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef _MESSAGE_H_
-#define _MESSAGE_H_
-
 #include "Config.h"
 
-#include <string>
-#include <vector>
+// Global variable for accessing config
+Config messageBotConfig;
 
-typedef struct {
-    // Do not use pointers for the config, as the config is not thread safe!
-    Config config;
-    std::string text;
-} Message;
+Config::Config() : debugEnabled(false), waitBetweenMessages(2000), waitAfterLogout(5000) {}
 
-#endif
+void Config::ResetConfig() {
+    this->username = std::string();
+    this->password = std::string();
+    this->waitBetweenMessages = 2000;
+    this->waitAfterLogout = 5000;
+    this->recipients.clear();
+    this->debugEnabled = false;
+}

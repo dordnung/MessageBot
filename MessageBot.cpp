@@ -26,9 +26,8 @@
 
 #include "MessageBot.h"
 #include "natives.h"
-#include "WebAPI.h"
+#include "Config.h"
 
-#include <sstream>
 #include <curl/curl.h>
 
 #if defined _WIN32 || defined _WIN64
@@ -42,7 +41,6 @@ MessageBot::MessageBot() {
     this->mutex = nullptr;
     this->isRunning = false;
     this->messageThread = nullptr;
-    this->debugEnabled = false;
 }
 
 bool MessageBot::SDK_OnLoad(char *error, size_t maxlength, bool late) {
@@ -99,15 +97,15 @@ void MessageBot::SDK_OnUnload() {
     this->callbackQueue.clear();
     this->callbackFunctions.clear();
     this->waitingThreads.clear();
-    this->recipients.clear();
 
     // Remove created mutex
     this->mutex->DestroyThis();
 
-    // Reset values
+    // Reset the message thread value
     this->messageThread = nullptr;
-    this->username.clear();
-    this->password.clear();
+
+    // Reset config values at end
+    messageBotConfig.ResetConfig();
 
     // Finally clean up CURL
     curl_global_cleanup();
@@ -242,179 +240,6 @@ void MessageBot::OnGameFrameHit(bool simulating) {
         this->runningThread = waitingThread;
         waitingThread->Unpause();
     }
-}
-
-cell_t MessageBot::SendBotMessage(IPluginContext *pContext, const cell_t *params) {
-    // Create a callback function from the given callback
-    auto callback = this->CreateCallbackFunction(pContext->GetFunctionById(params[1]));
-    if (!callback) {
-        pContext->ThrowNativeError("Callback ID %x is invalid", params[1]);
-        return 0;
-    }
-
-    // Get the message text to send
-    char *messageText;
-    pContext->LocalToString(params[2], &messageText);
-
-    // Create new message
-    Message message;
-    message.recipients = this->recipients;
-    message.username = this->username;
-    message.password = this->password;
-    message.text = messageText;
-    message.debugEnabled = this->debugEnabled;
-
-    // Start a new thread
-    MessageThread *messageThread = new MessageThread(message, callback);
-    if (!this->RegisterAndStartThread(messageThread)) {
-        delete messageThread;
-
-        pContext->ThrowNativeError("Couldn't create a new thread");
-        return 0;
-    }
-
-    return 1;
-}
-
-cell_t MessageBot::SetLoginData(IPluginContext *pContext, const cell_t *params) {
-    char *username;
-    char *password;
-
-    // Get global username and password
-    pContext->LocalToString(params[1], &username);
-    pContext->LocalToString(params[2], &password);
-
-    // Copy Strings to local variables
-    this->username = username;
-    this->password = password;
-
-    return 1;
-}
-
-cell_t MessageBot::AddRecipient(IPluginContext *pContext, const cell_t *params) {
-    // Read steamId from params
-    char *steamid;
-    pContext->LocalToString(params[1], &steamid);
-
-    // Valid community Id?
-    uint64_t commId = this->SteamId2toSteamId64(steamid);
-    if (!commId) {
-        return 0;
-    }
-
-    // Check for duplicates
-    for (auto recipient = this->recipients.begin(); recipient != this->recipients.end(); recipient++) {
-        if (commId == *recipient) {
-            return 0;
-        }
-    }
-
-    // Append recipient if not found yet
-    this->recipients.push_back(commId);
-
-    return 1;
-}
-
-cell_t MessageBot::RemoveRecipient(IPluginContext *pContext, const cell_t *params) {
-    // Read steamId from params
-    char *steamid;
-    pContext->LocalToString(params[1], &steamid);
-
-    // Valid community Id?
-    uint64_t commId = this->SteamId2toSteamId64(steamid);
-    if (!commId) {
-        return 0;
-    }
-
-    // Search for steamid
-    for (auto recipient = this->recipients.begin(); recipient != this->recipients.end(); recipient++) {
-        if (commId == *recipient) {
-            // Delete if found
-            this->recipients.erase(recipient);
-
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-cell_t MessageBot::IsRecipient(IPluginContext *pContext, const cell_t *params) {
-    // Read steamId from params
-    char *steamid;
-    pContext->LocalToString(params[1], &steamid);
-
-    // Valid community Id?
-    uint64_t commId = this->SteamId2toSteamId64(steamid);
-    if (!commId) {
-        return 0;
-    }
-
-    // Search for steamid
-    for (auto recipient = this->recipients.begin(); recipient != this->recipients.end(); recipient++) {
-        if (commId == *recipient) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-cell_t MessageBot::ClearRecipients(IPluginContext *pContext, const cell_t *params) {
-    this->recipients.clear();
-    return 0;
-}
-
-cell_t MessageBot::SetDebugStatus(IPluginContext *pContext, const cell_t *params) {
-    this->debugEnabled = !!params[1];
-    return 0;
-}
-
-WebAPIResult_t MessageBot::SendSteamMessage(Message message) {
-    WebAPI webApi;
-    return webApi.SendSteamMessage(message);
-}
-
-uint64_t MessageBot::SteamId2toSteamId64(std::string steamId2) {
-    // Maybe it's already a community Id
-    if (steamId2.find(":") == std::string::npos) {
-        return strtoull(steamId2.c_str(), nullptr, 10);
-    }
-
-    // To small for a valid steam Id
-    if (steamId2.length() < 11) {
-        return 0;
-    }
-
-    // Strip the steamid
-    std::vector<std::string> strippedSteamId;
-
-    std::stringstream ss(steamId2);
-    std::string item;
-
-    while (std::getline(ss, item, ':')) {
-        strippedSteamId.push_back(item);
-    }
-
-    // There should be 3 parts
-    if (strippedSteamId.size() != 3) {
-        return 0;
-    }
-
-    uint64_t server = strtoull(strippedSteamId.at(1).c_str(), nullptr, 10);
-    uint64_t authId = strtoull(strippedSteamId.at(2).c_str(), nullptr, 10);
-
-    // Wrong format
-    if (!authId) {
-        return 0;
-    }
-
-    // Calculate community Id
-#if defined _WIN32
-    return  authId * 2 + 76561197960265728 + server;
-#elif defined _LINUX
-    return  authId * 2 + 76561197960265728LLU + server;
-#endif
 }
 
 void MessageBot_OnGameFrameHit(bool simulating) {

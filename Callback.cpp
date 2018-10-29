@@ -30,6 +30,7 @@ Callback::Callback(std::shared_ptr<CallbackFunction_t> callbackFunction, int typ
     : callbackFunction(callbackFunction), type(type), error(error) {}
 
 void Callback::Fire() {
+    // Just call the callback function with the type and the error
     this->callbackFunction->function->PushCell(this->type);
     this->callbackFunction->function->PushString(this->error.c_str());
     this->callbackFunction->function->Execute(NULL);

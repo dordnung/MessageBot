@@ -89,6 +89,9 @@
     <ClCompile Include="..\..\WebAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\3rdparty\bigint\BigUnsignedInABase.hh">
@@ -158,6 +161,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

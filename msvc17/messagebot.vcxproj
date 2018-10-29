@@ -76,6 +76,7 @@
     <ClCompile Include="..\3rdparty\json\json_value.cpp" />
     <ClCompile Include="..\3rdparty\json\json_writer.cpp" />
     <ClCompile Include="..\Callback.cpp" />
+    <ClCompile Include="..\Config.cpp" />
     <ClCompile Include="..\MessageBot.cpp" />
     <ClCompile Include="..\natives.cpp" />
     <ClCompile Include="..\rsa\Arcfour.cpp" />
@@ -106,6 +107,7 @@
     <ClInclude Include="..\3rdparty\json\json_tool.h" />
     <ClInclude Include="..\Callback.h" />
     <ClInclude Include="..\CallbackFunction.h" />
+    <ClInclude Include="..\Config.h" />
     <ClInclude Include="..\Message.h" />
     <ClInclude Include="..\MessageBot.h" />
     <ClInclude Include="..\natives.h" />

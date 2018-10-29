@@ -33,14 +33,17 @@ int main(int argc, const char* argv[]) {
     // ensure the correct number of parameters are used.
     if (argc == 5) {
         Message message;
-        message.username = argv[1];
-        message.password = argv[2];
-        message.text = argv[3];
+        message.config.debugEnabled = true;
+        message.config.waitBetweenMessages = 2000;
+        message.config.waitAfterLogout = 5000;
+
+        message.config.username = argv[1];
+        message.config.password = argv[2];
 
         uint64_t steamId64 = strtoull(argv[4], NULL, 10);
-        message.recipients.push_back(steamId64);
+        message.config.recipients.push_back(steamId64);
 
-        message.debugEnabled = false;
+        message.text = argv[3];
 
         // Send the message
         WebAPI webApi;

@@ -105,6 +105,9 @@
     <ClCompile Include="..\3rdparty\json\json_writer.cpp">
       <Filter>Source Files\3rdparty\json</Filter>
     </ClCompile>
+    <ClCompile Include="..\Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\smsdk_config.h">
@@ -198,6 +201,9 @@
       <Filter>Header Files\3rdparty\json</Filter>
     </ClInclude>
     <ClInclude Include="..\WebAPIResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

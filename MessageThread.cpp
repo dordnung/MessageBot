@@ -27,13 +27,15 @@
 #include "MessageThread.h"
 #include "MessageBot.h"
 #include "Callback.h"
+#include "WebAPI.h"
 
 MessageThread::MessageThread(Message message, std::shared_ptr<CallbackFunction_t> callbackFunction) :
     message(message), callbackFunction(callbackFunction) {}
 
 void MessageThread::RunThread(IThreadHandle *pHandle) {
     // Send message via Webapi
-    WebAPIResult_t result = messageBot.SendSteamMessage(message);
+    WebAPI webApi;
+    WebAPIResult_t result = webApi.SendSteamMessage(message);
 
     // Add callback to queue
     messageBot.AppendCallback(std::make_shared<Callback>(this->callbackFunction, result.type, result.error));
