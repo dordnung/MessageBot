@@ -1,5 +1,6 @@
 MessageBot
 ==========
+[![Build Status](https://api.travis-ci.com/dordnung/MessageBot.svg)](https://travis-ci.com/dordnung/MessageBot)
 
 Allows to send messages to players with a Steam Bot
 
