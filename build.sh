@@ -33,8 +33,8 @@ cd curl-7.61.1
 cd $BUILD_DIR
 
 # SourceMod
-git clone https://github.com/alliedmodders/sourcemod --recursive --branch ${SMBRANCH} --single-branch ${SMBRANCH}
+git clone https://github.com/alliedmodders/sourcemod --recursive --branch ${SMBRANCH} --single-branch sourcemod-${SMBRANCH}
 
 
 cd $MESSAGEBOT_DIR
-make SMSDK=$BUILD_DIR/${SMBRANCH} OPENSSL=$BUILD_DIR/openssl-1.1.1 ZLIB=$BUILD_DIR/zlib-1.2.11 IDN=$BUILD_DIR/libidn2-2.0.5 CURL=$BUILD_DIR/curl-7.61.1
+make SMSDK=$BUILD_DIR/sourcemod-${SMBRANCH} OPENSSL=$BUILD_DIR/openssl-1.1.1 ZLIB=$BUILD_DIR/zlib-1.2.11 IDN=$BUILD_DIR/libidn2-2.0.5 CURL=$BUILD_DIR/curl-7.61.1
