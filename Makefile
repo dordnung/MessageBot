@@ -42,7 +42,7 @@ CPP_OSX = clang
 ### SDK CONFIGURATIONS ###
 ##########################
 
-INCLUDE += -I. -I.. -Isdk -I3rdparty -I3rdparty/json -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/core -I$(CURL)/include
+INCLUDE += -I. -I.. -Isdk -I3rdparty -I3rdparty/json -I$(SMSDK)/public -I$(SMSDK)/public/amtl -I$(SMSDK)/public/amtl/amtl -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/core -I$(CURL)/include
 
 LINK += -lrt -m32 -lm -ldl -lstdc++ $(CURL)/lib/.libs/libcurl.a $(OPENSSL)/lib/libssl.a $(OPENSSL)/lib/libcrypto.a $(ZLIB)/lib/libz.a $(IDN)/lib/libidn2.a
 
