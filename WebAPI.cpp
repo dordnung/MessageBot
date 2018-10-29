@@ -61,7 +61,7 @@
 #endif
 
 
-WebAPI::WebAPI() : debugEnabled(false), webAPIClient(nullptr), steamCommunityClient(nullptr) {
+WebAPI::WebAPI() : debugEnabled(false), requestTimeout(0), webAPIClient(nullptr), steamCommunityClient(nullptr) {
     this->steamCommunityClient = curl_easy_init();
     this->webAPIClient = curl_easy_init();
 }
@@ -161,7 +161,7 @@ Json::Value WebAPI::LoginSteamCommunity(std::string username, std::string passwo
         std::string json = result.toStyledString();
 
         result["success"] = false;
-        result["error"] = "Failed to succesfully login. JSON: '" + json + "'";
+        result["error"] = "Failed to successfully login. JSON: '" + json + "'";
         return result;
     }
 
@@ -405,6 +405,8 @@ Json::Value WebAPI::SendSteamMessage(std::string accessToken, std::string umqid,
 
 WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
     this->debugEnabled = message.config.debugEnabled;
+    this->requestTimeout = message.config.requestTimeout;
+
     Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.config.username.c_str(), message.config.password.c_str(), message.text.c_str());
 
     WebAPIResult_t result;
@@ -548,7 +550,7 @@ WebAPI::WriteDataInfo WebAPI::GetPage(CURL *client, std::string url, std::string
     curl_easy_setopt(client, CURLOPT_WRITEDATA, &writeData);
 
     // Set timeout
-    curl_easy_setopt(client, CURLOPT_TIMEOUT, 30);
+    curl_easy_setopt(client, CURLOPT_TIMEOUT, this->requestTimeout);
 
     // Prevent signals to interrupt our thread
     curl_easy_setopt(client, CURLOPT_NOSIGNAL, 1L);

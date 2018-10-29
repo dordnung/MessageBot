@@ -37,6 +37,7 @@ enum MessageBot_Option {
     OPTION_DEBUG,
     OPTION_WAIT_BETWEEN_MESSAGES,
     OPTION_WAIT_AFTER_LOGOUT,
+    OPTION_REQUEST_TIMEOUT,
     OPTION_MAX
 };
 
@@ -177,6 +178,9 @@ cell_t MessageBot_SetOption(IPluginContext *pContext, const cell_t *params) {
         case OPTION_WAIT_AFTER_LOGOUT:
             messageBotConfig.waitAfterLogout = params[2];
             break;
+        case OPTION_REQUEST_TIMEOUT:
+            messageBotConfig.requestTimeout = params[2];
+            break;
     }
 
     return 1;
@@ -197,6 +201,8 @@ cell_t MessageBot_GetOption(IPluginContext *pContext, const cell_t *params) {
             return messageBotConfig.waitBetweenMessages;
         case OPTION_WAIT_AFTER_LOGOUT:
             return messageBotConfig.waitAfterLogout;
+        case OPTION_REQUEST_TIMEOUT:
+            return messageBotConfig.requestTimeout;
     }
 
     return 1;

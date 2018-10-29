@@ -39,6 +39,7 @@
 class WebAPI {
 private:
     bool debugEnabled;
+    int requestTimeout;
 
     CURL *webAPIClient;
     CURL *steamCommunityClient;

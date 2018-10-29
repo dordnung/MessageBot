@@ -41,6 +41,7 @@ public:
 
     int waitBetweenMessages;
     int waitAfterLogout;
+    int requestTimeout;
 
     std::vector<uint64_t> recipients;
     bool debugEnabled;

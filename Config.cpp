@@ -26,16 +26,23 @@
 
 #include "Config.h"
 
+#define DEFAULT_WAIT_TIME_BETWEEN_MESSAGES 2000
+#define DEFAULT_WAIT_TIME_AFTER_LOGOUT 5000
+#define DEFAULT_REQUEST_TIMEOUT 30
+
 // Global variable for accessing config
 Config messageBotConfig;
 
-Config::Config() : waitBetweenMessages(2000), waitAfterLogout(5000), debugEnabled(false) {}
+Config::Config() :
+    waitBetweenMessages(DEFAULT_WAIT_TIME_BETWEEN_MESSAGES), waitAfterLogout(DEFAULT_WAIT_TIME_AFTER_LOGOUT),
+    requestTimeout(DEFAULT_REQUEST_TIMEOUT), debugEnabled(false) {}
 
 void Config::ResetConfig() {
     this->username = std::string();
     this->password = std::string();
-    this->waitBetweenMessages = 2000;
-    this->waitAfterLogout = 5000;
+    this->waitBetweenMessages = DEFAULT_WAIT_TIME_BETWEEN_MESSAGES;
+    this->waitAfterLogout = DEFAULT_WAIT_TIME_AFTER_LOGOUT;
+    this->requestTimeout = DEFAULT_REQUEST_TIMEOUT;
     this->recipients.clear();
     this->debugEnabled = false;
 }

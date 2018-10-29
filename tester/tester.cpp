@@ -36,6 +36,7 @@ int main(int argc, const char* argv[]) {
         message.config.debugEnabled = true;
         message.config.waitBetweenMessages = 2000;
         message.config.waitAfterLogout = 5000;
+        message.config.requestTimeout = 30;
 
         message.config.username = argv[1];
         message.config.password = argv[2];
