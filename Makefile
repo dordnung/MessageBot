@@ -25,7 +25,7 @@ OBJECTS += 3rdparty/bigint/BigInteger.cc 3rdparty/bigint/BigIntegerAlgorithms.cc
 OBJECTS += 3rdparty/json/json_reader.cpp 3rdparty/json/json_value.cpp 3rdparty/json/json_writer.cpp
 OBJECTS += rsa/Arcfour.cpp rsa/RSAKey.cpp rsa/SecureRandom.cpp
 OBJECTS += sdk/smsdk_ext.cpp
-OBJECTS += Callback.cpp Config.cpp MessageBot.cpp natives.cpp WebAPI.cpp
+OBJECTS += Callback.cpp Config.cpp MessageBot.cpp MessageThread.cpp natives.cpp WebAPI.cpp
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
