@@ -14,7 +14,7 @@ env:
     matrix:
         - SMBRANCH=1.8-dev
         - SMBRANCH=1.9-dev
-        - SMBRANCH=1.10-dev
+        - SMBRANCH=master
         
 before_script:
     - mkdir build
