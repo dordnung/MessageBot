@@ -1,6 +1,7 @@
 language: cpp
 
-sudo: false
+sudo: required
+dist: precise
 addons:
     apt:
         packages:
@@ -22,4 +23,5 @@ before_script:
     - export BUILD_DIR=$(pwd)/build
 
 script:
+    - ldd --version
     - bash build.sh
