@@ -43,7 +43,7 @@ CPP_OSX = clang
 
 INCLUDE += -I. -I.. -Isdk -I3rdparty -I3rdparty/json -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/core -I$(CURL)/include
 
-LINK += -lrt -m32 -lm -ldl -lstdc++ $(CURL)/lib/.libs/libcurl.a $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a $(ZLIB)/libz.a
+LINK += -lrt -m32 -lm -ldl -lstdc++ $(CURL)/lib/.libs/libcurl.a $(OPENSSL)/lib/libssl.a $(OPENSSL)/lib/libcrypto.a $(ZLIB)/lib/libz.a
 
 CFLAGS += -std=c++0x -DPOSIX -DCURL_STATICLIB -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall -Werror \
