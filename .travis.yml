@@ -36,3 +36,4 @@ deploy:
           branches:
               only:
                   - master
+                  - travis-build
