@@ -21,4 +21,4 @@ before_script:
     - docker build -t messagebot .
 
 script:
-    - docker run --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot  build.sh
+    - docker run --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot bash build.sh
