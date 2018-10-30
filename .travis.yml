@@ -22,3 +22,18 @@ before_script:
 
 script:
     - docker run --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot bash build.sh
+    
+deploy:
+    - provider: releases
+      skip_cleanup: true
+      api_key:
+          secure: gyk3HqTqsDOurFWIgStau5nVTudrgzztBn3mGEFsMGACWUUBqJ9ojkfW/PtNEoDB1hpiAhiyBZbLYPFc7KgB3kCj33suPMHVqfTdBFR2J3MzWCa22Nwd1Ybx4gIkU7LU95Nb3PK+r7ObXJfdZsYvGhJcV4+bMtqGXEcsmz+h+N8uNlBaMAs95JQSUa6iStDzIboebwqVKPNo+kjaXdI6S7UgPMTa23GUR2owAQgcqnqOdwRllNTHShV/ag9JNq+jIqjxRzeMm0846GfRDrtCFZ6bLYHIszuTll50hjS7fWu998SW5uTpreiK8b+pgXPmWhyJwKMH9UhPvQ8+xKdEWLCV+EE0SeTrDF2tBjbz3Ldtjlv1VHhK7aZR8fSIW4yF14uuQQlrDd4AoAe76tG31IwDNPyswyv/RsVjr8yaQ0rGZ44cRLZE3aDoZqDF4X8C1tEF/NTho1b0zpQYcvtn01If/AIJacPxVLQUtJIoCRTaDnoA5mYvpUUMTciE0/o9Oi90chpm/hCK19y5CEJnKUpOdGyYcTqZ8PPSccg1k4CxhThDKSvL16kookZqgs9CNIWreqWyH6ws1YWtyoGtgXhsq20E4KsbdeZTj0aaOgMuIQRh8WWtL1ec7PgdVQdx+XEIFp0WOLWiVLqIXMtbTJ6aKtN8CfmvdMV8/+Q2kXo=
+      file:
+          - Release/messagebot.ext.so
+      on:
+          condition: "$SMBRANCH = 1.9-dev"
+          repo: dordnung/MessageBot
+          branches:
+              only:
+                  - master
+                  - travis-build
