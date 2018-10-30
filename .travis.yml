@@ -33,7 +33,4 @@ deploy:
       on:
           condition: "$SMBRANCH = 1.9-dev"
           repo: dordnung/MessageBot
-          branches:
-              only:
-                  - master
-                  - travis-build
+          all_branches: true
