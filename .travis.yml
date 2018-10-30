@@ -1,14 +1,14 @@
 language: cpp
 
-sudo: false
+sudo: required
+
+services:
+  - docker
+  
 addons:
     apt:
         packages:
-            - lib32stdc++6
-            - zip
-            - unzip
-            - gcc-multilib
-            - g++-multilib
+            - docker-ce
 
 env:
     matrix:
@@ -18,8 +18,7 @@ env:
         
 before_script:
     - mkdir build
-    - export MESSAGEBOT_DIR=$(pwd)
-    - export BUILD_DIR=$(pwd)/build
+    - docker build -t messagebot .
 
 script:
-    - bash build.sh
+    - docker run --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot  build.sh
