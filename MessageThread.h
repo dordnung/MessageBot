@@ -31,6 +31,8 @@
 #include "CallbackFunction.h"
 #include "Message.h"
 
+#include <memory>
+
 class MessageThread : public IThread {
 private:
     Message message;
