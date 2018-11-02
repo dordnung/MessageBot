@@ -7,7 +7,10 @@ cd %BUILD_DIR%
 
 
 if "%VSCMD_VER%"=="" (
+	set MAKE=
+	set CC=
 	call %VCVARSALL% x86 8.1
+	set
 )
 
 
@@ -16,7 +19,7 @@ REM Zlib
 echo "Building zlib"
 if not exist "zlib.zip" (
 	curl https://zlib.net/zlib1211.zip -o zlib.zip
-	unzip zlib.zip
+	unzip -q zlib.zip
 )
 
 cd zlib-1.2.11
@@ -35,7 +38,7 @@ REM Libcurl
 echo "Building curl"
 if not exist "curl.zip" (
 	curl https://curl.haxx.se/download/curl-7.61.1.zip -o curl.zip
-	unzip curl.zip
+	unzip -q curl.zip
 )
 
 cd curl-7.61.1\winbuild
