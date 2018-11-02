@@ -1,9 +1,13 @@
 language: cpp
 
+os:
+    - linux
+    - windows
+
 sudo: required
 
 services:
-  - docker
+    - docker
   
 addons:
     apt:
@@ -18,10 +22,12 @@ env:
         
 before_script:
     - mkdir build
-    - docker build -t messagebot .
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build -t messagebot . ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install -y visualstudio2017buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.Component.VC.Runtime.UCRTSDK --add Microsoft.VisualStudio.Component.Windows81SDK --add Microsoft.VisualStudio.Component.WinXP" ; fi
 
 script:
-    - docker run -w /build --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot bash build.sh
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker run -w /build --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build messagebot bash build.sh ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then ./build.bat ; fi
     
 deploy:
     - provider: releases
