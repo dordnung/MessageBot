@@ -9,8 +9,8 @@ cd %BUILD_DIR%
 if "%VSCMD_VER%"=="" (
 	set MAKE=
 	set CC=
+	set CXX=
 	call %VCVARSALL% x86 8.1
-	set
 )
 
 
