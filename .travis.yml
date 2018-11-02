@@ -21,7 +21,7 @@ before_script:
     - docker build -t messagebot .
 
 script:
-    - docker run --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot bash build.sh
+    - docker run -w /build --env SMBRANCH=$SMBRANCH --env MESSAGEBOT_DIR=/build --env BUILD_DIR=/build/build -v $(pwd):/build  messagebot bash build.sh
     
 deploy:
     - provider: releases
@@ -34,3 +34,4 @@ deploy:
           condition: "$SMBRANCH = 1.9-dev"
           repo: dordnung/MessageBot
           all_branches: true
+          tags: true
