@@ -53,7 +53,7 @@ cd %BUILD_DIR%
 
 
 REM Sourcemod
-echo "Getting messagebot"
+echo "Getting sourcemod"
 if not exist "sourcemod-%SMBRANCH%" (
 	git clone https://github.com/alliedmodders/sourcemod --recursive --branch %SMBRANCH% --single-branch sourcemod-%SMBRANCH%
 )
