@@ -5,7 +5,7 @@ MessageBot
 Allows to send messages to players with a Steam Bot
 
 Check `messagebot.inc` for available functions.
-Binarys can be found in the [CallAdmin Steam Module](https://forums.alliedmods.net/showthread.php?t=213670)
+Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.net/showthread.php?t=213670) or on [the releases page](https://github.com/dordnung/MessageBot/releases).
 
 ## How-to build: ##
 

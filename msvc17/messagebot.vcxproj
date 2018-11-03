@@ -38,7 +38,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..;..\3rdparty\json;$(CURL)\include;$(SOURCEMOD19)\core;$(SOURCEMOD19)\public;$(SOURCEMOD19)\sourcepawn\include;$(SOURCEMOD19)\public\sourcepawn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\3rdparty\json;$(CURL)\include;$(SOURCEMOD19)\core;$(SOURCEMOD19)\public;$(SOURCEMOD19)\sourcepawn\include;$(SOURCEMOD19)\public\sourcepawn;$(SOURCEMOD19)\public\amtl;$(SOURCEMOD19)\public\amtl\amtl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>CURL_STATICLIB;WIN32;NDEBUG;_WINDOWS;_USRDLL;SDK_EXPORTS;_CRT_SECURE_NO_DEPRECATE;SOURCEMOD_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
