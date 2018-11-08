@@ -1,5 +1,5 @@
-MessageBot
-==========
+# MessageBot
+
 [![Build Status](https://api.travis-ci.com/dordnung/MessageBot.svg)](https://travis-ci.com/dordnung/MessageBot)
 
 Allows to send messages to players with a Steam Bot
@@ -7,9 +7,9 @@ Allows to send messages to players with a Steam Bot
 Check `messagebot.inc` for available functions.
 Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.net/showthread.php?t=213670) or on [the releases page](https://github.com/dordnung/MessageBot/releases).
 
-## How-to build: ##
+## How-to build
 
-### On Linux: ###
+### On Linux
 - **Set build path**
   1. `export BUILD_DIR=$HOME`
   2. `cd $BUILD_DIR`
@@ -40,7 +40,7 @@ Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.
   2. `cd curl-7.61.1`
   3. `./configure --with-ssl=$BUILD_DIR/openssl-1.1.1 --with-zlib=$BUILD_DIR/zlib-1.2.11 --with-libidn2=$BUILD_DIR/libidn2-2.0.5 --disable-shared --enable-static --disable-rtsp --disable-ldap --disable-ldaps --disable-manual --disable-libcurl-option --without-librtmp --without-libssh2 --without-nghttp2 --without-gssapi --host=i386-pc-linux-gnu CFLAGS=-m32 && make`
   4. **DO NOT INSTALL IT!**
-  4. `cd $BUILD_DIR`
+  5. `cd $BUILD_DIR`
 
 - **Get Sourcemod 1.9**
   1. `git clone https://github.com/alliedmodders/sourcemod --recursive --branch 1.9-dev --single-branch sourcemod-1.9`
@@ -50,7 +50,7 @@ Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.
   2. `cd MessageBot`
   3. `make SMSDK=$BUILD_DIR/sourcemod-1.9 OPENSSL=$BUILD_DIR/openssl-1.1.1 ZLIB=$BUILD_DIR/zlib-1.2.11 IDN=$BUILD_DIR/libidn2-2.0.5 CURL=$BUILD_DIR/curl-7.61.1`
 
-### On Windows (Visual Studio 2015/2017): ###
+### On Windows (Visual Studio 2015/2017)
 - **Build zlib**
   1. Download zlib from `https://zlib.net/zlib1211.zip` and unzip to some folder
   2. Open the `Developer Command Prompt for VS 2017` or `Developer Command Prompt for VS 2015` at the `zlib-1.2.11` folder
