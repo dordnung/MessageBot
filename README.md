@@ -19,14 +19,14 @@ Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.
   2. `cd openssl-1.1.1`
   3. `setarch i386 ./config -m32 no-shared && make`
   4. `mkdir lib && cp *.a lib/`
-  4. `cd $BUILD_DIR`
+  5. `cd $BUILD_DIR`
 
 - **Build zlib**
   1. `wget http://zlib.net/zlib1211.zip && unzip zlib1211.zip`
   2. `cd zlib-1.2.11`
   3. `CFLAGS=-m32 ./configure -static && make`
   4. `mkdir include && mkdir lib && cp *.h include/ && cp libz.a lib`
-  4. `cd $BUILD_DIR`
+  5. `cd $BUILD_DIR`
 
 - **Build libidn**
   1. `wget https://ftp.gnu.org/gnu/libidn/libidn2-2.0.5.tar.gz && tar -xvzf libidn2-2.0.5.tar.gz`
@@ -55,11 +55,11 @@ Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.
   1. Download zlib from `https://zlib.net/zlib1211.zip` and unzip to some folder
   2. Open the `Developer Command Prompt for VS 2017` or `Developer Command Prompt for VS 2015` at the `zlib-1.2.11` folder
   3. Type `vcvarsall.bat x86 8.1` and press ENTER
-  3. Type `nmake /f win32/Makefile.msc LOC=-MT` and press ENTER
-  4. Type `md lib include` and press ENTER
-  5. Type `copy /Y zlib.lib lib` and press ENTER
-  6. Type `copy /Y *h include` and press ENTER
-  7. Add a new system variable named `ZLIB` pointing to the `zlib-1.2.11` folder
+  4. Type `nmake /f win32/Makefile.msc LOC=-MT` and press ENTER
+  5. Type `md lib include` and press ENTER
+  6. Type `copy /Y zlib.lib lib` and press ENTER
+  7. Type `copy /Y *h include` and press ENTER
+  8. Add a new system variable named `ZLIB` pointing to the `zlib-1.2.11` folder
 
 - **Build libcurl**
   1. Download curl from `https://curl.haxx.se/download/curl-7.61.1.zip` and unzip to some folder
