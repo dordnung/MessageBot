@@ -410,11 +410,11 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
     this->requestTimeout = message.config.requestTimeout;
 
 
-	std::vector<uint64_t> recipientsCopy(message.config.recipients);
-	if (message.config.shuffleRecipients) {
-		std::random_shuffle(recipientsCopy.begin(), recipientsCopy.end());
-		Debug("[DEBUG] Shuffled recipient list");
-	}
+    std::vector<uint64_t> recipientsCopy(message.config.recipients);
+    if (message.config.shuffleRecipients) {
+        std::random_shuffle(recipientsCopy.begin(), recipientsCopy.end());
+        Debug("[DEBUG] Shuffled recipient list");
+    }
 
     Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.config.username.c_str(), message.config.password.c_str(), message.text.c_str());
 

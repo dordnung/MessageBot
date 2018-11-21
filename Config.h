@@ -45,7 +45,7 @@ public:
 
     std::vector<uint64_t> recipients;
     bool debugEnabled;
-	bool shuffleRecipients;
+    bool shuffleRecipients;
 
 public:
     Config();

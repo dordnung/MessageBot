@@ -45,5 +45,5 @@ void Config::ResetConfig() {
     this->requestTimeout = DEFAULT_REQUEST_TIMEOUT;
     this->recipients.clear();
     this->debugEnabled = false;
-	this->shuffleRecipients = false;
+    this->shuffleRecipients = false;
 }

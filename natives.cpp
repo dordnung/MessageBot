@@ -38,7 +38,7 @@ enum MessageBot_Option {
     OPTION_WAIT_BETWEEN_MESSAGES,
     OPTION_WAIT_AFTER_LOGOUT,
     OPTION_REQUEST_TIMEOUT,
-	OPTION_SHUFFLE_RECIPIENTS,
+    OPTION_SHUFFLE_RECIPIENTS,
     OPTION_MAX
 };
 
@@ -182,9 +182,9 @@ cell_t MessageBot_SetOption(IPluginContext *pContext, const cell_t *params) {
         case OPTION_REQUEST_TIMEOUT:
             messageBotConfig.requestTimeout = params[2];
             break;
-		case OPTION_SHUFFLE_RECIPIENTS:
-			messageBotConfig.shuffleRecipients = params[2];
-			break;
+        case OPTION_SHUFFLE_RECIPIENTS:
+            messageBotConfig.shuffleRecipients = params[2];
+            break;
     }
 
     return 1;
@@ -207,8 +207,8 @@ cell_t MessageBot_GetOption(IPluginContext *pContext, const cell_t *params) {
             return messageBotConfig.waitAfterLogout;
         case OPTION_REQUEST_TIMEOUT:
             return messageBotConfig.requestTimeout;
-		case OPTION_SHUFFLE_RECIPIENTS:
-			return messageBotConfig.shuffleRecipients;
+        case OPTION_SHUFFLE_RECIPIENTS:
+            return messageBotConfig.shuffleRecipients;
     }
 
     return 1;
