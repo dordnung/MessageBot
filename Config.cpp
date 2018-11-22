@@ -35,7 +35,7 @@ Config messageBotConfig;
 
 Config::Config() :
     waitBetweenMessages(DEFAULT_WAIT_TIME_BETWEEN_MESSAGES), waitAfterLogout(DEFAULT_WAIT_TIME_AFTER_LOGOUT),
-    requestTimeout(DEFAULT_REQUEST_TIMEOUT), debugEnabled(false) {}
+    requestTimeout(DEFAULT_REQUEST_TIMEOUT), debugEnabled(false), shuffleRecipients(false) {}
 
 void Config::ResetConfig() {
     this->username = std::string();
@@ -45,4 +45,5 @@ void Config::ResetConfig() {
     this->requestTimeout = DEFAULT_REQUEST_TIMEOUT;
     this->recipients.clear();
     this->debugEnabled = false;
+    this->shuffleRecipients = false;
 }

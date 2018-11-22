@@ -31,6 +31,8 @@
 #include <chrono>
 #include <stdarg.h>
 #include <string.h>
+#include <algorithm>
+#include <random>
 
 #define CLIENT_ID "DE45CD61"
 #define CLIENT_SCOPE "read_profile write_profile read_client write_client"
@@ -407,12 +409,22 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
     this->debugEnabled = message.config.debugEnabled;
     this->requestTimeout = message.config.requestTimeout;
 
+
+    std::vector<uint64_t> recipientsCopy(message.config.recipients);
+    if (message.config.shuffleRecipients) {
+        std::random_device randomDevice;
+        std::mt19937 randomEngine(randomDevice());
+
+        std::shuffle(recipientsCopy.begin(), recipientsCopy.end(), randomEngine);
+        Debug("[DEBUG] Shuffled recipient list");
+    }
+
     Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.config.username.c_str(), message.config.password.c_str(), message.text.c_str());
 
     WebAPIResult_t result;
 
     // No recipient?
-    if (message.config.recipients.size() == 0) {
+    if (recipientsCopy.size() == 0) {
         Debug("[DEBUG] Couldn't send message, as no recipients are defined");
 
         result.type = WebAPIResult_NO_RECEIVER;
@@ -471,7 +483,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
     }
 
     // Get user stats
-    Json::Value userStatsResult = this->GetUserStats(accessToken, message.config.recipients);
+    Json::Value userStatsResult = this->GetUserStats(accessToken, recipientsCopy);
     if (!userStatsResult["success"].asBool()) {
         LogError(userStatsResult["error"].asString().c_str());
 
@@ -482,7 +494,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
 
     // Check if there is valid recipient which is online
     Json::Value userValues = userStatsResult.get("players", "");
-    for (auto recipient = message.config.recipients.begin(); recipient != message.config.recipients.end(); recipient++) {
+    for (auto recipient = recipientsCopy.begin(); recipient != recipientsCopy.end(); recipient++) {
         for (int i = 0; userValues.isValidIndex(i); i++) {
             std::string steam = userValues[i].get("steamid", "").asString();
             int online = userValues[i].get("personastate", 0).asInt();
