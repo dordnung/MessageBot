@@ -412,7 +412,10 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
 
     std::vector<uint64_t> recipientsCopy(message.config.recipients);
     if (message.config.shuffleRecipients) {
-        std::random_shuffle(recipientsCopy.begin(), recipientsCopy.end());
+        std::random_device randomDevice;
+        std::mt19937 randomEngine(randomDevice());
+
+        std::shuffle(recipientsCopy.begin(), recipientsCopy.end(), randomEngine);
         Debug("[DEBUG] Shuffled recipient list");
     }
 
