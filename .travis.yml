@@ -21,7 +21,6 @@ env:
         - SMBRANCH=master
         
 before_script:
-    - mkdir build
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build -t messagebot . ; fi
     - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install -y visualstudio2017buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Win81 --add Microsoft.VisualStudio.Component.WinXP" ; fi
 

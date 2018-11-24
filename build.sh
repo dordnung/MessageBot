@@ -6,6 +6,10 @@ MESSAGEBOT_DIR="$(pwd)"
 BUILD_DIR="$MESSAGEBOT_DIR/build-linux"
 
 
+if [[ ! -d "$BUILD_DIR" ]]; then
+	mkdir -p "$BUILD_DIR"
+fi
+
 cd "$BUILD_DIR" || exit
 
 # OpenSSL
