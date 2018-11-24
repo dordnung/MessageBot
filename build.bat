@@ -3,7 +3,7 @@ set BUILD_DIR=%MESSAGEBOT_DIR%\build-windows
 set VCVARSALL="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
 
 
-if not exists "%BUILD_DIR%" (
+if not exist "%BUILD_DIR%" (
 	mkdir "%BUILD_DIR%"
 )
 
