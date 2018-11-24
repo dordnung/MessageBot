@@ -1,5 +1,5 @@
 set MESSAGEBOT_DIR=%cd%
-set BUILD_DIR=%MESSAGEBOT_DIR%\build
+set BUILD_DIR=%MESSAGEBOT_DIR%\build-windows
 set VCVARSALL="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
 
 

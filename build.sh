@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eu
 
+
+MESSAGEBOT_DIR="$(pwd)"
+BUILD_DIR="$MESSAGEBOT_DIR/build-linux"
+
+
 cd "$BUILD_DIR" || exit
 
 # OpenSSL
