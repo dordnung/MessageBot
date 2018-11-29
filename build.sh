@@ -19,7 +19,7 @@ if [[ ! -f "openssl-1.1.1a.tar.gz" ]]; then
 fi
 
 cd openssl-1.1.1a
-setarch i386 ./config -m32 no-shared && make
+setarch i386 ./config -m32 no-shared no-tests && make
 mkdir lib && cp ./*.a lib/
 cd "$BUILD_DIR" || exit
 
