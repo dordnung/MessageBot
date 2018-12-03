@@ -37,11 +37,11 @@ cd %BUILD_DIR%
 REM Libcurl
 echo "Building curl"
 if not exist "curl.zip" (
-	curl https://curl.haxx.se/download/curl-7.61.1.zip -o curl.zip
+	curl https://curl.haxx.se/download/curl-7.62.0.zip -o curl.zip
 	unzip -q curl.zip
 )
 
-cd curl-7.61.1\winbuild
+cd curl-7.62.0\winbuild
 nmake /f Makefile.vc mode=static WITH_ZLIB=static ZLIB_PATH=%ZLIB% RTLIBCFG=static VC=15 MACHINE=x86
 
 cd ..\builds\libcurl-vc15-x86-release-static-zlib-static-ipv6-sspi-winssl
