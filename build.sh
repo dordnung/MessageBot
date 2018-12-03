@@ -5,11 +5,11 @@ cd "$BUILD_DIR" || exit
 
 # OpenSSL
 echo "Building openssl"
-if [[ ! -f "openssl-1.1.1.tar.gz" ]]; then
-	wget https://www.openssl.org/source/openssl-1.1.1.tar.gz && tar -xzf openssl-1.1.1.tar.gz
+if [[ ! -f "openssl-1.1.1a.tar.gz" ]]; then
+	wget https://www.openssl.org/source/openssl-1.1.1a.tar.gz && tar -xzf openssl-1.1.1a.tar.gz
 fi
 
-cd openssl-1.1.1
+cd openssl-1.1.1a
 setarch i386 ./config -m32 no-shared && make
 mkdir lib && cp ./*.a lib/
 cd "$BUILD_DIR" || exit
@@ -38,15 +38,15 @@ cd "$BUILD_DIR" || exit
 
 # LibCurl
 echo "Building libcurl"
-if [[ ! -f "curl-7.61.1.zip" ]]; then
-	wget https://curl.haxx.se/download/curl-7.61.1.zip && unzip -q curl-7.61.1.zip
+if [[ ! -f "curl-7.62.0.zip" ]]; then
+	wget https://curl.haxx.se/download/curl-7.62.0.zip && unzip -q curl-7.62.0.zip
 fi
 
-cd curl-7.61.1
-./configure --with-ssl="$BUILD_DIR/openssl-1.1.1" --with-zlib="$BUILD_DIR/zlib-1.2.11" \
+cd curl-7.62.0
+./configure --with-ssl="$BUILD_DIR/openssl-1.1.1a" --with-zlib="$BUILD_DIR/zlib-1.2.11" \
  --with-libidn2="$BUILD_DIR/libidn2-2.0.5" --disable-shared --enable-static --disable-rtsp \
  --disable-ldap --disable-ldaps --disable-manual --disable-libcurl-option --without-librtmp \
- --without-libssh2 --without-nghttp2 --without-gssapi --host=i386-pc-linux-gnu CFLAGS=-m32 && make
+ --without-libssh2 --without-nghttp2 --without-gssapi --host=i386-pc-linux-gnu CFLAGS=-m32 && make all ca-bundle
 cd "$BUILD_DIR" || exit
 
 # SourceMod
@@ -58,4 +58,4 @@ fi
 
 echo "Building messagebot"
 cd "$MESSAGEBOT_DIR" || exit
-make SMSDK="$BUILD_DIR/sourcemod-${SMBRANCH}" OPENSSL="$BUILD_DIR/openssl-1.1.1" ZLIB="$BUILD_DIR/zlib-1.2.11" IDN="$BUILD_DIR/libidn2-2.0.5" CURL="$BUILD_DIR/curl-7.61.1"
+make SMSDK="$BUILD_DIR/sourcemod-${SMBRANCH}" OPENSSL="$BUILD_DIR/openssl-1.1.1a" ZLIB="$BUILD_DIR/zlib-1.2.11" IDN="$BUILD_DIR/libidn2-2.0.5" CURL="$BUILD_DIR/curl-7.62.0"

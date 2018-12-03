@@ -37,6 +37,7 @@ deploy:
       file:
           - Release/messagebot.ext.so
           - msvc17/Release/messagebot.ext.dll
+          - ca-bundle.crt
       on:
           condition: "$SMBRANCH = 1.9-dev"
           repo: dordnung/MessageBot
