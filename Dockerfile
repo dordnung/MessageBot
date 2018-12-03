@@ -4,13 +4,13 @@ WORKDIR /build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    curl \
     g++-multilib \
     gcc-multilib \
     git \
+    lib32stdc++6 \
     make \
-    curl \
+    unzip \
     wget \
     zip \
-    lib32stdc++6 \
-    unzip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
