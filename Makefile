@@ -123,6 +123,7 @@ all: check
 	mkdir -p $(BIN_DIR)/3rdparty/json
 	mkdir -p $(BIN_DIR)/rsa
 	mkdir -p $(BIN_DIR)/sdk
+	cp -f $(CURL)/lib/ca-bundle.crt ca-bundle.crt
 	$(MAKE) -f $(MAKEFILE_NAME) extension
 
 check:
