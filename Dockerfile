@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc-multilib \
     git \
     make \
+    curl \
     wget \
     zip \
     lib32stdc++6 \
