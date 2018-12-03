@@ -27,11 +27,6 @@ before_script:
 script:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker run -w /build --env SMBRANCH=$SMBRANCH -v $(pwd):/build messagebot bash build.sh ; fi
     - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then ./build.bat ; fi
-
-cache:
-    directories:
-        - build-linux
-        - build-windows
     
 deploy:
     - provider: releases
