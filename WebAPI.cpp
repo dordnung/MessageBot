@@ -561,7 +561,16 @@ WebAPI::WriteDataInfo WebAPI::GetPage(CURL *client, std::string url, std::string
     char caPath[PLATFORM_MAX_PATH + 1];
     smutils->BuildPath(Path_SM, caPath, sizeof(caPath), "data/messagebot/ca-bundle.crt");
 
-    curl_easy_setopt(client, CURLOPT_CAINFO, caPath);
+    static bool caErrorReported = false;
+    if (std::ifstream(caPath).good())
+    {
+        curl_easy_setopt(client, CURLOPT_CAINFO, caPath);
+    }
+    else if (!caErrorReported)
+    {
+        LogError("File 'ca-bundle.crt' is missing from 'sourcemod/data/messagebot/' folder, please install it")
+        caErrorReported = true;
+    }
 #endif
 
     // Set the write function and data
