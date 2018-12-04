@@ -33,6 +33,7 @@
 #include <string.h>
 #include <algorithm>
 #include <random>
+#include <fstream>
 
 #define CLIENT_ID "DE45CD61"
 #define CLIENT_SCOPE "read_profile write_profile read_client write_client"
