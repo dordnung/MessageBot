@@ -569,7 +569,7 @@ WebAPI::WriteDataInfo WebAPI::GetPage(CURL *client, std::string url, std::string
     }
     else if (!caErrorReported)
     {
-        LogError("File 'ca-bundle.crt' is missing from 'sourcemod/data/messagebot/' folder, please install it")
+        LogError("File 'ca-bundle.crt' is missing from 'sourcemod/data/messagebot/' folder, please install it");
         caErrorReported = true;
     }
 #endif
