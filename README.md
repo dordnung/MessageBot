@@ -7,6 +7,12 @@ Allows to send messages to players with a Steam Bot
 Check `messagebot.inc` for available functions.
 Binaries can be found in the [CallAdmin Steam Module](https://forums.alliedmods.net/showthread.php?t=213670) or on [the releases page](https://github.com/dordnung/MessageBot/releases).
 
+## Installation
+1. Download the latest release from [the releases page](https://github.com/dordnung/MessageBot/releases).
+2. Put the extension file `messagebot.ext.dll` (windows server) and/or `messagebot.ext.so` (linux server) into the `addons/sourcemod/extensions` folder.
+3. Put the `ca-bundle.crt` file into the `addons/sourcemod/data/messagebot` folder. If it does not exist, create it.
+
+
 ## How-to build
 
 ### On Linux
