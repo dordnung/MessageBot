@@ -420,7 +420,7 @@ WebAPIResult_t WebAPI::SendSteamMessage(Message message) {
         Debug("[DEBUG] Shuffled recipient list");
     }
 
-    Debug("[DEBUG] Trying to send a message to user '%s' with password '%s' and message '%s'", message.config.username.c_str(), message.config.password.c_str(), message.text.c_str());
+    Debug("[DEBUG] Trying to send a message as user '%s' with password '%s' and message '%s'", message.config.username.c_str(), message.config.password.c_str(), message.text.c_str());
 
     WebAPIResult_t result;
 
